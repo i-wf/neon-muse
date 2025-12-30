@@ -26,13 +26,16 @@ const Index = () => {
     setImageUrl(null);
     
     try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-image`,
+        `${supabaseUrl}/functions/v1/generate-image`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            "Authorization": `Bearer ${supabaseKey}`,
           },
           body: JSON.stringify({ prompt }),
         }
