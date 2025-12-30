@@ -5,6 +5,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Supported models
+const SUPPORTED_MODELS = [
+  "google/gemini-2.5-flash-image-preview",
+  "google/gemini-3-pro-image-preview",
+];
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -12,7 +18,7 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt } = await req.json();
+    const { prompt, model } = await req.json();
     
     if (!prompt) {
       return new Response(
@@ -21,7 +27,13 @@ serve(async (req) => {
       );
     }
 
-    console.log("Generating image for prompt:", prompt);
+    // Default to nano banana if no model specified or invalid model
+    const selectedModel = SUPPORTED_MODELS.includes(model) 
+      ? model 
+      : "google/gemini-2.5-flash-image-preview";
+
+    console.log("Generating image with model:", selectedModel);
+    console.log("Prompt:", prompt);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -35,7 +47,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image-preview",
+        model: selectedModel,
         messages: [
           {
             role: "user",
@@ -78,7 +90,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ image: imageUrl }),
+      JSON.stringify({ image: imageUrl, model: selectedModel }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
