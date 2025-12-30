@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { NeonGrid } from "@/components/NeonGrid";
-import { Sparkles, Zap, Wand2, Image, Layers, ArrowRight } from "lucide-react";
+import { ImaginaryLogo } from "@/components/ImaginaryLogo";
+import { Sparkles, Wand2, Image, Layers, ArrowRight, History } from "lucide-react";
 
 const Landing = () => {
   return (
@@ -11,11 +12,8 @@ const Landing = () => {
       {/* Navigation */}
       <nav className="relative z-20 border-b border-border/30 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <Zap className="h-6 w-6 text-neon-cyan" />
-            <span className="font-display text-xl font-bold bg-gradient-to-r from-neon-cyan to-neon-magenta bg-clip-text text-transparent">
-              PROMPTCRAFT
-            </span>
+          <Link to="/">
+            <ImaginaryLogo size="md" />
           </Link>
           
           <div className="flex items-center gap-4">
@@ -74,7 +72,7 @@ const Landing = () => {
 
       {/* Features Section */}
       <section className="relative z-10 container mx-auto px-4 py-20">
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-4 gap-6">
           <FeatureCard
             icon={<Image className="h-8 w-8" />}
             title="Image Upload"
@@ -93,6 +91,12 @@ const Landing = () => {
             description="Generate stunning artwork from your customized prompts instantly"
             color="purple"
           />
+          <FeatureCard
+            icon={<History className="h-8 w-8" />}
+            title="Image History"
+            description="Keep track of all your generated images and revisit your creations"
+            color="cyan"
+          />
         </div>
       </section>
 
@@ -100,7 +104,7 @@ const Landing = () => {
       <footer className="relative z-10 border-t border-border/30 py-8">
         <div className="container mx-auto px-4 text-center">
           <p className="text-muted-foreground/60 font-body text-sm">
-            © 2024 PromptCraft. Create stunning AI art with a single click.
+            © 2024 Imaginary. Create stunning AI art with a single click.
           </p>
         </div>
       </footer>
@@ -129,7 +133,7 @@ function FeatureCard({
     <div className={`group relative p-6 rounded-xl border bg-card/50 backdrop-blur-sm transition-all duration-300 hover:bg-card/80 ${colorClasses[color]}`}>
       <div className="mb-4">{icon}</div>
       <h3 className="font-display text-lg font-semibold text-foreground mb-2">{title}</h3>
-      <p className="text-muted-foreground font-body">{description}</p>
+      <p className="text-muted-foreground font-body text-sm">{description}</p>
     </div>
   );
 }

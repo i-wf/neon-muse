@@ -3,7 +3,8 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NeonGrid } from "@/components/NeonGrid";
-import { Zap, Mail, Lock, ArrowLeft, User } from "lucide-react";
+import { ImaginaryLogo } from "@/components/ImaginaryLogo";
+import { Mail, Lock, ArrowLeft, User } from "lucide-react";
 import { toast } from "sonner";
 
 const Auth = () => {
@@ -43,11 +44,8 @@ const Auth = () => {
         </Link>
 
         {/* Logo */}
-        <div className="flex items-center gap-2 mb-8">
-          <Zap className="h-8 w-8 text-neon-cyan" />
-          <span className="font-display text-2xl font-bold bg-gradient-to-r from-neon-cyan to-neon-magenta bg-clip-text text-transparent">
-            PROMPTCRAFT
-          </span>
+        <div className="mb-8">
+          <ImaginaryLogo size="lg" />
         </div>
 
         {/* Auth Card */}
