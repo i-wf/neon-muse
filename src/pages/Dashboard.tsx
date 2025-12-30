@@ -5,19 +5,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { NeonGrid } from "@/components/NeonGrid";
 import { GeneratedImage } from "@/components/GeneratedImage";
 import { EditPanel, type EditOption } from "@/components/EditPanel";
-import { ImageUploader } from "@/components/ImageUploader";
+import { ReferenceImageUploader } from "@/components/ReferenceImageUploader";
 import { ModelSelector, AI_MODELS, type AIModel } from "@/components/ModelSelector";
 import { 
   Zap, Wand2, Sparkles, Copy, Check, 
   Home, ChevronRight, Settings2, X,
-  PanelLeftClose, PanelLeftOpen
+  PanelLeftClose, PanelLeftOpen, Eye
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
   const [basePrompt, setBasePrompt] = useState("");
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [subjectImage, setSubjectImage] = useState<string | null>(null);
+  const [styleImage, setStyleImage] = useState<string | null>(null);
+  const [subjectInfluence, setSubjectInfluence] = useState(0.7);
+  const [styleInfluence, setStyleInfluence] = useState(0.5);
   const [activeEdits, setActiveEdits] = useState<EditOption[]>([]);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -95,7 +98,11 @@ const Dashboard = () => {
           },
           body: JSON.stringify({ 
             prompt: finalPrompt,
-            model: selectedModel.apiModel
+            model: selectedModel.apiModel,
+            referenceImage: subjectImage,
+            styleImage: styleImage,
+            subjectInfluence: subjectInfluence,
+            styleInfluence: styleInfluence
           }),
         }
       );
@@ -119,7 +126,8 @@ const Dashboard = () => {
   const handleClearAll = () => {
     setBasePrompt("");
     setActiveEdits([]);
-    setUploadedImage(null);
+    setSubjectImage(null);
+    setStyleImage(null);
     toast.info("Cleared all selections");
   };
 
@@ -183,18 +191,43 @@ const Dashboard = () => {
               />
             </div>
 
-            {/* Image Upload */}
+            {/* Subject Reference */}
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles className="h-4 w-4 text-neon-magenta" />
                 <h3 className="font-display text-sm text-neon-magenta uppercase tracking-wider">
-                  Reference
+                  Subject Reference
                 </h3>
               </div>
-              <ImageUploader 
-                uploadedImage={uploadedImage}
-                onImageUpload={setUploadedImage}
-                onImageRemove={() => setUploadedImage(null)}
+              <ReferenceImageUploader 
+                referenceImage={subjectImage}
+                onImageUpload={setSubjectImage}
+                onImageRemove={() => setSubjectImage(null)}
+                influenceStrength={subjectInfluence}
+                onInfluenceChange={setSubjectInfluence}
+                type="subject"
+                title="Subject / Face"
+                description="Upload a person or object to include"
+              />
+            </div>
+
+            {/* Style Reference */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Eye className="h-4 w-4 text-neon-cyan" />
+                <h3 className="font-display text-sm text-neon-cyan uppercase tracking-wider">
+                  Style Inspiration
+                </h3>
+              </div>
+              <ReferenceImageUploader 
+                referenceImage={styleImage}
+                onImageUpload={setStyleImage}
+                onImageRemove={() => setStyleImage(null)}
+                influenceStrength={styleInfluence}
+                onInfluenceChange={setStyleInfluence}
+                type="style"
+                title="Style Reference"
+                description="Upload an image for style inspiration"
               />
             </div>
 
