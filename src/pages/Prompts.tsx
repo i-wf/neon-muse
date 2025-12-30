@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
-import { Sparkles, Wand2, RefreshCw, Zap } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Sparkles, Wand2, RefreshCw, Zap, Home, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PromptDisplay } from "@/components/PromptDisplay";
 import { GeneratedImage } from "@/components/GeneratedImage";
@@ -7,7 +8,7 @@ import { NeonGrid } from "@/components/NeonGrid";
 import { generateCreativePrompt } from "@/data/promptTemplates";
 import { toast } from "sonner";
 
-const Index = () => {
+const Prompts = () => {
   const [prompt, setPrompt] = useState(() => generateCreativePrompt());
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -61,15 +62,46 @@ const Index = () => {
     <div className="min-h-screen relative">
       <NeonGrid />
       
+      {/* Navigation Header */}
+      <header className="relative z-20 border-b border-border/30 backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link to="/" className="flex items-center gap-2">
+              <Zap className="h-6 w-6 text-neon-cyan" />
+              <span className="font-display text-xl font-bold bg-gradient-to-r from-neon-cyan to-neon-magenta bg-clip-text text-transparent">
+                PROMPTCRAFT
+              </span>
+            </Link>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            <span className="font-body text-muted-foreground">Prompt Generator</span>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <Link to="/dashboard">
+              <Button variant="neonCyan" size="sm">
+                <Wand2 className="h-4 w-4" />
+                Full Editor
+              </Button>
+            </Link>
+            <Link to="/">
+              <Button variant="ghost" size="sm">
+                <Home className="h-4 w-4" />
+                Home
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </header>
+      
       {/* Scan line effect */}
       <div className="scan-line" />
       
       <div className="relative z-10 container mx-auto px-4 py-8 md:py-16">
         {/* Header */}
-        <header className="text-center mb-12 md:mb-16">
+        <div className="text-center mb-12 md:mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neon-cyan/30 bg-neon-cyan/5 mb-6">
-            <Zap className="h-4 w-4 text-neon-cyan" />
-            <span className="text-sm font-body text-neon-cyan">Powered by Flux AI</span>
+            <Sparkles className="h-4 w-4 text-neon-cyan" />
+            <span className="text-sm font-body text-neon-cyan">AI-Powered Prompts</span>
           </div>
           
           <h1 className="font-display text-4xl md:text-5xl lg:text-7xl font-bold mb-4 text-glow-cyan">
@@ -83,7 +115,7 @@ const Index = () => {
           <p className="text-muted-foreground font-body text-lg md:text-xl max-w-2xl mx-auto">
             Generate creative prompts for AI image generators and bring them to life instantly
           </p>
-        </header>
+        </div>
 
         {/* Main content */}
         <div className="max-w-4xl mx-auto space-y-8">
@@ -150,4 +182,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default Prompts;
