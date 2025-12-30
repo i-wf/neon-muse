@@ -7,10 +7,12 @@ import { GeneratedImage } from "@/components/GeneratedImage";
 import { EditPanel, type EditOption } from "@/components/EditPanel";
 import { ReferenceImageUploader } from "@/components/ReferenceImageUploader";
 import { ModelSelector, AI_MODELS, type AIModel } from "@/components/ModelSelector";
+import { ImaginaryLogo } from "@/components/ImaginaryLogo";
+import { ImageHistory, type HistoryImage } from "@/components/ImageHistory";
 import { 
-  Zap, Wand2, Sparkles, Copy, Check, 
+  Wand2, Sparkles, Copy, Check, 
   Home, ChevronRight, Settings2, X,
-  PanelLeftClose, PanelLeftOpen, Eye
+  PanelLeftClose, PanelLeftOpen, Eye, History
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -29,6 +31,8 @@ const Dashboard = () => {
   const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false);
   const [leftPanelOpen, setLeftPanelOpen] = useState(true);
   const [rightPanelOpen, setRightPanelOpen] = useState(true);
+  const [imageHistory, setImageHistory] = useState<HistoryImage[]>([]);
+  const [selectedHistoryId, setSelectedHistoryId] = useState<string | undefined>();
 
   // Build the final prompt from base + active edits
   const buildFinalPrompt = useCallback(() => {
@@ -82,7 +86,6 @@ const Dashboard = () => {
     }
 
     setIsGenerating(true);
-    setGeneratedImage(null);
 
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -113,7 +116,21 @@ const Dashboard = () => {
       }
 
       const data = await response.json();
-      setGeneratedImage(data.image);
+      const newImage = data.image;
+      
+      // Set as current image
+      setGeneratedImage(newImage);
+      
+      // Add to history
+      const historyItem: HistoryImage = {
+        id: crypto.randomUUID(),
+        url: newImage,
+        prompt: finalPrompt,
+        createdAt: new Date(),
+      };
+      setImageHistory(prev => [historyItem, ...prev]);
+      setSelectedHistoryId(historyItem.id);
+      
       toast.success("Image generated!");
     } catch (error) {
       console.error("Error:", error);
@@ -121,6 +138,26 @@ const Dashboard = () => {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const handleHistorySelect = (image: HistoryImage) => {
+    setGeneratedImage(image.url);
+    setSelectedHistoryId(image.id);
+  };
+
+  const handleHistoryDelete = (id: string) => {
+    setImageHistory(prev => prev.filter(img => img.id !== id));
+    if (selectedHistoryId === id) {
+      const remaining = imageHistory.filter(img => img.id !== id);
+      if (remaining.length > 0) {
+        setGeneratedImage(remaining[0].url);
+        setSelectedHistoryId(remaining[0].id);
+      } else {
+        setGeneratedImage(null);
+        setSelectedHistoryId(undefined);
+      }
+    }
+    toast.info("Image removed from history");
   };
 
   const handleClearAll = () => {
@@ -139,11 +176,8 @@ const Dashboard = () => {
       <header className="relative z-20 border-b border-border/30 backdrop-blur-sm shrink-0">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to="/" className="flex items-center gap-2">
-              <Zap className="h-6 w-6 text-neon-cyan" />
-              <span className="font-display text-xl font-bold bg-gradient-to-r from-neon-cyan to-neon-magenta bg-clip-text text-transparent">
-                PROMPTCRAFT
-              </span>
+            <Link to="/">
+              <ImaginaryLogo size="sm" />
             </Link>
             <ChevronRight className="h-4 w-4 text-muted-foreground" />
             <span className="font-body text-muted-foreground">Studio</span>
@@ -265,6 +299,22 @@ const Dashboard = () => {
 
         {/* Center - Main Canvas Area */}
         <main className="flex-1 flex flex-col overflow-hidden">
+          {/* Image History Strip */}
+          {imageHistory.length > 0 && (
+            <div className="border-b border-border/30 bg-card/30 backdrop-blur-sm">
+              <div className="flex items-center gap-2 px-4 pt-2">
+                <History className="h-4 w-4 text-neon-cyan" />
+                <span className="text-xs font-display text-neon-cyan uppercase tracking-wider">Generated Images</span>
+              </div>
+              <ImageHistory 
+                images={imageHistory}
+                onSelect={handleHistorySelect}
+                onDelete={handleHistoryDelete}
+                selectedId={selectedHistoryId}
+              />
+            </div>
+          )}
+
           {/* Image Display Area */}
           <div className="flex-1 flex items-center justify-center p-6 overflow-hidden">
             <div className="w-full max-w-2xl aspect-square">
