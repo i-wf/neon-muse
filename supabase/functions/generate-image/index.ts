@@ -18,7 +18,7 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, model } = await req.json();
+    const { prompt, model, referenceImage, styleImage, subjectInfluence, styleInfluence } = await req.json();
     
     if (!prompt) {
       return new Response(
@@ -34,10 +34,63 @@ serve(async (req) => {
 
     console.log("Generating image with model:", selectedModel);
     console.log("Prompt:", prompt);
+    console.log("Has reference image:", !!referenceImage);
+    console.log("Has style image:", !!styleImage);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
+    }
+
+    // Build the message content
+    let messageContent: any[];
+    
+    // Build enhanced prompt with reference context
+    let enhancedPrompt = prompt;
+    
+    if (referenceImage && subjectInfluence) {
+      const influenceLevel = subjectInfluence > 0.7 ? "very closely" : subjectInfluence > 0.4 ? "moderately" : "loosely";
+      enhancedPrompt = `Using the provided reference image as a subject guide (follow it ${influenceLevel}), generate: ${prompt}`;
+    }
+    
+    if (styleImage && styleInfluence) {
+      const influenceLevel = styleInfluence > 0.7 ? "very closely" : styleInfluence > 0.4 ? "moderately" : "loosely";
+      enhancedPrompt = `${enhancedPrompt}. Match the artistic style of the style reference image ${influenceLevel}.`;
+    }
+
+    // If we have reference images, include them in the message
+    if (referenceImage || styleImage) {
+      messageContent = [
+        {
+          type: "text",
+          text: `Generate a stunning, high-quality image based on this description: ${enhancedPrompt}. Make it visually impressive and artistic.`
+        }
+      ];
+      
+      if (referenceImage) {
+        messageContent.push({
+          type: "image_url",
+          image_url: {
+            url: referenceImage
+          }
+        });
+      }
+      
+      if (styleImage) {
+        messageContent.push({
+          type: "image_url",
+          image_url: {
+            url: styleImage
+          }
+        });
+      }
+    } else {
+      messageContent = [
+        {
+          type: "text",
+          text: `Generate a stunning, high-quality image based on this description: ${enhancedPrompt}. Make it visually impressive and artistic.`
+        }
+      ];
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -51,7 +104,7 @@ serve(async (req) => {
         messages: [
           {
             role: "user",
-            content: `Generate a stunning, high-quality image based on this description: ${prompt}. Make it visually impressive and artistic.`,
+            content: messageContent,
           },
         ],
         modalities: ["image", "text"],
