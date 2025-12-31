@@ -1,10 +1,12 @@
-import { ChevronDown, Sparkles, Zap, Crown, Rocket, Star } from "lucide-react";
+import { ChevronDown, Sparkles, Zap, Crown, Rocket, Star, Cpu } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface AIModel {
   id: string;
   name: string;
+  nameAr: string;
   description: string;
+  descriptionAr: string;
   tier: "free" | "pro";
   apiModel: string;
   speed: "fast" | "medium" | "slow";
@@ -12,25 +14,41 @@ export interface AIModel {
 
 export const AI_MODELS: AIModel[] = [
   {
-    id: "nano-banana",
-    name: "Nano Banana",
+    id: "flux-fast",
+    name: "Flux Fast",
+    nameAr: "فلوكس السريع",
     description: "Fast & free - Great for quick iterations",
+    descriptionAr: "سريع ومجاني - ممتاز للتجارب السريعة",
     tier: "free",
     apiModel: "google/gemini-2.5-flash-image-preview",
     speed: "fast",
   },
   {
-    id: "nano-banana-hd",
-    name: "Nano Banana HD",
-    description: "Enhanced quality - Better details",
+    id: "flux-balanced",
+    name: "Flux Balanced",
+    nameAr: "فلوكس المتوازن",
+    description: "Balanced quality & speed - Best for most uses",
+    descriptionAr: "جودة وسرعة متوازنة - الأفضل لمعظم الاستخدامات",
     tier: "free",
     apiModel: "google/gemini-2.5-flash-image-preview",
     speed: "medium",
   },
   {
-    id: "gemini-pro-image",
-    name: "Gemini Pro Image",
+    id: "flux-hd",
+    name: "Flux HD",
+    nameAr: "فلوكس عالي الدقة",
+    description: "High quality details - Beautiful renders",
+    descriptionAr: "تفاصيل عالية الجودة - رسومات جميلة",
+    tier: "free",
+    apiModel: "google/gemini-2.5-flash-image-preview",
+    speed: "medium",
+  },
+  {
+    id: "flux-pro",
+    name: "Flux Pro",
+    nameAr: "فلوكس برو",
     description: "Premium quality - Best for final renders",
+    descriptionAr: "جودة ممتازة - الأفضل للرسومات النهائية",
     tier: "pro",
     apiModel: "google/gemini-3-pro-image-preview",
     speed: "slow",
@@ -43,6 +61,7 @@ interface ModelSelectorProps {
   isOpen: boolean;
   onToggle: () => void;
   compact?: boolean;
+  isArabic?: boolean;
 }
 
 const getSpeedIcon = (speed: AIModel["speed"]) => {
@@ -56,7 +75,18 @@ const getSpeedIcon = (speed: AIModel["speed"]) => {
   }
 };
 
-export function ModelSelector({ selectedModel, onModelChange, isOpen, onToggle, compact = false }: ModelSelectorProps) {
+const getSpeedLabel = (speed: AIModel["speed"], isArabic: boolean) => {
+  if (isArabic) {
+    switch (speed) {
+      case "fast": return "سريع";
+      case "medium": return "متوسط";
+      case "slow": return "بطيء";
+    }
+  }
+  return speed;
+};
+
+export function ModelSelector({ selectedModel, onModelChange, isOpen, onToggle, compact = false, isArabic = false }: ModelSelectorProps) {
   return (
     <div className="relative">
       <button
@@ -69,6 +99,7 @@ export function ModelSelector({ selectedModel, onModelChange, isOpen, onToggle, 
             ? "border-neon-cyan shadow-[0_0_20px_hsl(var(--neon-cyan)/0.3)]" 
             : "border-border/50 hover:border-neon-cyan/50"
         )}
+        dir={isArabic ? "rtl" : "ltr"}
       >
         <div className={cn(
           "rounded-lg flex items-center justify-center shrink-0",
@@ -77,12 +108,16 @@ export function ModelSelector({ selectedModel, onModelChange, isOpen, onToggle, 
             ? "bg-neon-cyan/20 text-neon-cyan" 
             : "bg-neon-magenta/20 text-neon-magenta"
         )}>
-          {selectedModel.tier === "free" ? <Zap className={cn(compact ? "h-4 w-4" : "h-5 w-5")} /> : <Crown className={cn(compact ? "h-4 w-4" : "h-5 w-5")} />}
+          {selectedModel.tier === "free" ? <Cpu className={cn(compact ? "h-4 w-4" : "h-5 w-5")} /> : <Crown className={cn(compact ? "h-4 w-4" : "h-5 w-5")} />}
         </div>
-        <div className="flex-1 text-left min-w-0">
-          <p className={cn("font-body font-semibold text-foreground truncate", compact && "text-sm")}>{selectedModel.name}</p>
+        <div className="flex-1 text-left min-w-0" style={{ textAlign: isArabic ? "right" : "left" }}>
+          <p className={cn("font-body font-semibold text-foreground truncate", compact && "text-sm")}>
+            {isArabic ? selectedModel.nameAr : selectedModel.name}
+          </p>
           {!compact && (
-            <p className="text-xs text-muted-foreground truncate">{selectedModel.description}</p>
+            <p className="text-xs text-muted-foreground truncate">
+              {isArabic ? selectedModel.descriptionAr : selectedModel.description}
+            </p>
           )}
         </div>
         <ChevronDown className={cn(
@@ -107,6 +142,7 @@ export function ModelSelector({ selectedModel, onModelChange, isOpen, onToggle, 
                   "hover:bg-muted/50",
                   selectedModel.id === model.id && "bg-muted/30"
                 )}
+                dir={isArabic ? "rtl" : "ltr"}
               >
                 <div className={cn(
                   "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
@@ -114,11 +150,13 @@ export function ModelSelector({ selectedModel, onModelChange, isOpen, onToggle, 
                     ? "bg-neon-cyan/20 text-neon-cyan" 
                     : "bg-neon-magenta/20 text-neon-magenta"
                 )}>
-                  {model.tier === "free" ? <Zap className="h-5 w-5" /> : <Crown className="h-5 w-5" />}
+                  {model.tier === "free" ? <Cpu className="h-5 w-5" /> : <Crown className="h-5 w-5" />}
                 </div>
-                <div className="flex-1 text-left min-w-0">
+                <div className="flex-1 text-left min-w-0" style={{ textAlign: isArabic ? "right" : "left" }}>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-body font-semibold text-foreground">{model.name}</p>
+                    <p className="font-body font-semibold text-foreground">
+                      {isArabic ? model.nameAr : model.name}
+                    </p>
                     {model.tier === "pro" && (
                       <span className="px-2 py-0.5 rounded-full bg-neon-magenta/20 text-neon-magenta text-xs font-body shrink-0">
                         PRO
@@ -131,10 +169,12 @@ export function ModelSelector({ selectedModel, onModelChange, isOpen, onToggle, 
                       "bg-orange-500/20 text-orange-400"
                     )}>
                       {getSpeedIcon(model.speed)}
-                      {model.speed}
+                      {getSpeedLabel(model.speed, isArabic)}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground">{model.description}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {isArabic ? model.descriptionAr : model.description}
+                  </p>
                 </div>
                 {selectedModel.id === model.id && (
                   <Sparkles className="h-4 w-4 text-neon-cyan shrink-0" />
