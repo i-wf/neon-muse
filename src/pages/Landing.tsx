@@ -11,19 +11,20 @@ const Landing = () => {
       
       {/* Navigation */}
       <nav className="relative z-20 border-b border-border/30 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-3 md:px-4 py-3 md:py-4 flex items-center justify-between">
           <Link to="/">
-            <ImaginaryLogo size="md" />
+            <ImaginaryLogo size="sm" className="md:hidden" />
+            <ImaginaryLogo size="md" className="hidden md:flex" />
           </Link>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
             <Link to="/auth?mode=login">
-              <Button variant="ghost" className="text-foreground hover:text-neon-cyan">
+              <Button variant="ghost" size="sm" className="text-foreground hover:text-neon-cyan text-sm md:text-base">
                 Log In
               </Button>
             </Link>
             <Link to="/auth?mode=signup">
-              <Button variant="neonGradient">
+              <Button variant="neonGradient" size="sm" className="text-sm md:text-base">
                 Get Started
               </Button>
             </Link>
@@ -71,28 +72,28 @@ const Landing = () => {
       </section>
 
       {/* Features Section */}
-      <section className="relative z-10 container mx-auto px-4 py-20">
-        <div className="grid md:grid-cols-4 gap-6">
+      <section className="relative z-10 container mx-auto px-3 md:px-4 py-12 md:py-20">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
           <FeatureCard
-            icon={<Image className="h-8 w-8" />}
+            icon={<Image className="h-6 w-6 md:h-8 md:w-8" />}
             title="Image Upload"
             description="Upload your photos and transform them with AI-powered editing tools"
             color="cyan"
           />
           <FeatureCard
-            icon={<Layers className="h-8 w-8" />}
+            icon={<Layers className="h-6 w-6 md:h-8 md:w-8" />}
             title="Smart Edits"
             description="Apply filters, styles, and effects that automatically enhance your prompts"
             color="magenta"
           />
           <FeatureCard
-            icon={<Wand2 className="h-8 w-8" />}
+            icon={<Wand2 className="h-6 w-6 md:h-8 md:w-8" />}
             title="AI Generation"
             description="Generate stunning artwork from your customized prompts instantly"
             color="purple"
           />
           <FeatureCard
-            icon={<History className="h-8 w-8" />}
+            icon={<History className="h-6 w-6 md:h-8 md:w-8" />}
             title="Image History"
             description="Keep track of all your generated images and revisit your creations"
             color="cyan"
@@ -130,10 +131,10 @@ function FeatureCard({
   };
 
   return (
-    <div className={`group relative p-6 rounded-xl border bg-card/50 backdrop-blur-sm transition-all duration-300 hover:bg-card/80 ${colorClasses[color]}`}>
-      <div className="mb-4">{icon}</div>
-      <h3 className="font-display text-lg font-semibold text-foreground mb-2">{title}</h3>
-      <p className="text-muted-foreground font-body text-sm">{description}</p>
+    <div className={`group relative p-4 md:p-6 rounded-xl border bg-card/50 backdrop-blur-sm transition-all duration-300 hover:bg-card/80 ${colorClasses[color]}`}>
+      <div className="mb-2 md:mb-4">{icon}</div>
+      <h3 className="font-display text-sm md:text-lg font-semibold text-foreground mb-1 md:mb-2">{title}</h3>
+      <p className="text-muted-foreground font-body text-xs md:text-sm hidden md:block">{description}</p>
     </div>
   );
 }

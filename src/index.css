@@ -79,6 +79,20 @@
       radial-gradient(ellipse at top, hsl(var(--neon-cyan) / 0.08) 0%, transparent 50%),
       radial-gradient(ellipse at bottom right, hsl(var(--neon-magenta) / 0.06) 0%, transparent 50%);
     min-height: 100vh;
+    min-height: 100dvh;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Better touch targets on mobile */
+  @media (max-width: 768px) {
+    button, a {
+      min-height: 44px;
+    }
   }
 }
 
