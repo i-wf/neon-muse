@@ -1,4 +1,4 @@
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
 
@@ -6,9 +6,19 @@ interface GeneratedImageProps {
   imageUrl: string | null;
   isLoading: boolean;
   prompt: string;
+  onImproveImage?: () => void;
+  isImproving?: boolean;
+  t: (key: string) => string;
 }
 
-export function GeneratedImage({ imageUrl, isLoading, prompt }: GeneratedImageProps) {
+export function GeneratedImage({ 
+  imageUrl, 
+  isLoading, 
+  prompt, 
+  onImproveImage,
+  isImproving,
+  t 
+}: GeneratedImageProps) {
   const handleDownload = async () => {
     if (!imageUrl) return;
     
@@ -40,7 +50,7 @@ export function GeneratedImage({ imageUrl, isLoading, prompt }: GeneratedImagePr
               <Loader2 className="h-12 w-12 text-neon-cyan animate-spin" />
             </div>
             <p className="text-muted-foreground font-body text-center animate-pulse">
-              Generating your masterpiece...
+              {t("generating")}
             </p>
             <p className="text-xs text-muted-foreground/60 text-center max-w-[250px]">
               This may take 10-30 seconds
@@ -53,15 +63,32 @@ export function GeneratedImage({ imageUrl, isLoading, prompt }: GeneratedImagePr
               alt={prompt}
               className="w-full h-full object-cover"
             />
-            <Button
-              variant="neonMagenta"
-              size="sm"
-              onClick={handleDownload}
-              className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-            >
-              <Download className="h-4 w-4" />
-              Download
-            </Button>
+            {/* Top bar with Improve Image button */}
+            <div className="absolute top-0 left-0 right-0 p-3 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-b from-black/60 to-transparent">
+              {onImproveImage && (
+                <Button
+                  variant="neonCyan"
+                  size="sm"
+                  onClick={onImproveImage}
+                  disabled={isImproving || isLoading}
+                  className="gap-1"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  {isImproving ? t("improving") : t("improveImage")}
+                </Button>
+              )}
+            </div>
+            {/* Bottom bar with download button */}
+            <div className="absolute bottom-0 left-0 right-0 p-3 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-t from-black/60 to-transparent">
+              <Button
+                variant="neonMagenta"
+                size="sm"
+                onClick={handleDownload}
+              >
+                <Download className="h-4 w-4" />
+                Download
+              </Button>
+            </div>
           </>
         ) : (
           <div className="flex flex-col items-center gap-4 p-8 text-center">
@@ -69,7 +96,7 @@ export function GeneratedImage({ imageUrl, isLoading, prompt }: GeneratedImagePr
               <span className="text-2xl">🎨</span>
             </div>
             <p className="text-muted-foreground font-body">
-              Click "Generate Image" to create art
+              {t("generate")} to create art
             </p>
           </div>
         )}
