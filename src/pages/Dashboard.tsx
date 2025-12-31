@@ -14,7 +14,7 @@ import {
   Wand2, Sparkles, Copy, Check, 
   Home, ChevronRight, Settings2, X,
   PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen,
-  Eye, History, Menu, Palette, Languages
+  Eye, History, Menu, Palette, Languages, Zap
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -32,6 +32,8 @@ const Dashboard = () => {
   const [activeEdits, setActiveEdits] = useState<EditOption[]>([]);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isImproving, setIsImproving] = useState(false);
+  const [isImprovingImage, setIsImprovingImage] = useState(false);
   const [copied, setCopied] = useState(false);
   const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
   const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false);
@@ -40,6 +42,7 @@ const Dashboard = () => {
   const [imageHistory, setImageHistory] = useState<HistoryImage[]>([]);
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | undefined>();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currentImagePrompt, setCurrentImagePrompt] = useState<string>("");
 
   // Build the final prompt from base + active edits
   const buildFinalPrompt = useCallback(() => {
@@ -132,6 +135,7 @@ const Dashboard = () => {
       
       // Set as current image
       setGeneratedImage(newImage);
+      setCurrentImagePrompt(finalPrompt);
       
       // Add to history
       const historyItem: HistoryImage = {
@@ -155,6 +159,7 @@ const Dashboard = () => {
   const handleHistorySelect = (image: HistoryImage) => {
     setGeneratedImage(image.url);
     setSelectedHistoryId(image.id);
+    setCurrentImagePrompt(image.prompt);
   };
 
   const handleHistoryDelete = (id: string) => {
@@ -178,6 +183,122 @@ const Dashboard = () => {
     setSubjectImage(null);
     setStyleImage(null);
     toast.info(t("clearedSelections"));
+  };
+
+  const handleImprovePrompt = async () => {
+    if (!basePrompt.trim()) {
+      toast.error(t("enterPrompt"));
+      return;
+    }
+    
+    setIsImproving(true);
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/improve-prompt`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${supabaseKey}`,
+          },
+          body: JSON.stringify({ prompt: basePrompt, type: "improve" }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to improve prompt");
+      }
+
+      const data = await response.json();
+      setBasePrompt(data.improvedPrompt);
+      toast.success(t("promptImproved"));
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to improve prompt");
+    } finally {
+      setIsImproving(false);
+    }
+  };
+
+  const handleImproveImage = async () => {
+    if (!generatedImage || !currentImagePrompt) {
+      return;
+    }
+    
+    setIsImprovingImage(true);
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      
+      // First improve the prompt
+      const promptResponse = await fetch(
+        `${supabaseUrl}/functions/v1/improve-prompt`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${supabaseKey}`,
+          },
+          body: JSON.stringify({ prompt: currentImagePrompt, type: "enhance" }),
+        }
+      );
+
+      if (!promptResponse.ok) {
+        throw new Error("Failed to improve prompt");
+      }
+
+      const promptData = await promptResponse.json();
+      const improvedPrompt = promptData.improvedPrompt;
+      
+      toast.info(t("imageImproveStarted"));
+      
+      // Now generate with improved prompt
+      const imageResponse = await fetch(
+        `${supabaseUrl}/functions/v1/generate-image`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${supabaseKey}`,
+          },
+          body: JSON.stringify({ 
+            prompt: improvedPrompt,
+            model: selectedModel.apiModel,
+          }),
+        }
+      );
+
+      if (!imageResponse.ok) {
+        const error = await imageResponse.json();
+        throw new Error(error.error || t("generationFailed"));
+      }
+
+      const imageData = await imageResponse.json();
+      const newImage = imageData.image;
+      
+      setGeneratedImage(newImage);
+      setCurrentImagePrompt(improvedPrompt);
+      
+      const historyItem: HistoryImage = {
+        id: crypto.randomUUID(),
+        url: newImage,
+        prompt: improvedPrompt,
+        createdAt: new Date(),
+      };
+      setImageHistory(prev => [historyItem, ...prev]);
+      setSelectedHistoryId(historyItem.id);
+      
+      toast.success(t("imageGenerated"));
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error(error instanceof Error ? error.message : t("generationFailed"));
+    } finally {
+      setIsImprovingImage(false);
+    }
   };
 
   const toggleLeftPanel = () => {
@@ -450,8 +571,11 @@ const Dashboard = () => {
             <div className="w-full max-w-2xl aspect-square">
               <GeneratedImage 
                 imageUrl={generatedImage}
-                isLoading={isGenerating}
+                isLoading={isGenerating || isImprovingImage}
                 prompt={finalPrompt}
+                onImproveImage={handleImproveImage}
+                isImproving={isImprovingImage}
+                t={t}
               />
             </div>
           </div>
@@ -477,39 +601,58 @@ const Dashboard = () => {
               </div>
             )}
 
-            <div className="flex gap-2 md:gap-3">
-              <div className="flex-1 relative">
-                <Textarea
-                  value={basePrompt}
-                  onChange={(e) => setBasePrompt(e.target.value)}
-                  placeholder={t("describeVision")}
-                  className="min-h-[50px] md:min-h-[60px] max-h-[100px] md:max-h-[120px] bg-muted/50 border-border/50 rounded-xl font-body resize-none pr-8 text-sm md:text-base"
-                  dir={isArabic ? "rtl" : "ltr"}
-                />
-                {basePrompt && (
-                  <button
-                    onClick={() => setBasePrompt("")}
-                    className={cn(
-                      "absolute top-2 text-muted-foreground hover:text-foreground",
-                      isArabic ? "left-2" : "right-2"
-                    )}
+            <div className="flex flex-col gap-2 md:gap-3">
+              {/* Improve Prompt button row */}
+              {basePrompt.trim() && (
+                <div className="flex justify-end">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleImprovePrompt}
+                    disabled={isImproving || isGenerating}
+                    className="border-neon-cyan/50 text-neon-cyan hover:bg-neon-cyan/10 gap-1"
                   >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
+                    <Zap className="h-4 w-4" />
+                    {isImproving ? t("improving") : t("improvePrompt")}
+                  </Button>
+                </div>
+              )}
+              
+              {/* Input and Generate button row */}
+              <div className="flex gap-2 md:gap-3">
+                <div className="flex-1 relative">
+                  <Textarea
+                    value={basePrompt}
+                    onChange={(e) => setBasePrompt(e.target.value)}
+                    placeholder={t("describeVision")}
+                    className="min-h-[50px] md:min-h-[60px] max-h-[100px] md:max-h-[120px] bg-muted/50 border-border/50 rounded-xl font-body resize-none pr-8 text-sm md:text-base"
+                    dir={isArabic ? "rtl" : "ltr"}
+                  />
+                  {basePrompt && (
+                    <button
+                      onClick={() => setBasePrompt("")}
+                      className={cn(
+                        "absolute top-2 text-muted-foreground hover:text-foreground",
+                        isArabic ? "left-2" : "right-2"
+                      )}
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+                <Button
+                  variant="neonGradient"
+                  size={isMobile ? "default" : "lg"}
+                  onClick={handleGenerate}
+                  disabled={isGenerating || !finalPrompt}
+                  className="h-auto px-4 md:px-8 shrink-0"
+                >
+                  <Wand2 className="h-4 md:h-5 w-4 md:w-5" />
+                  <span className="hidden sm:inline ml-2">
+                    {isGenerating ? t("generating") : t("generate")}
+                  </span>
+                </Button>
               </div>
-              <Button
-                variant="neonGradient"
-                size={isMobile ? "default" : "lg"}
-                onClick={handleGenerate}
-                disabled={isGenerating || !finalPrompt}
-                className="h-auto px-4 md:px-8 shrink-0"
-              >
-                <Wand2 className="h-4 md:h-5 w-4 md:w-5" />
-                <span className="hidden sm:inline ml-2">
-                  {isGenerating ? t("generating") : t("generate")}
-                </span>
-              </Button>
             </div>
           </div>
         </main>

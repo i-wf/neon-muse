@@ -167,6 +167,7 @@ const Prompts = () => {
               imageUrl={imageUrl} 
               isLoading={isGenerating}
               prompt={prompt}
+              t={(key) => key === "generating" ? "Generating..." : key === "generate" ? "Generate" : key}
             />
           </section>
         </div>

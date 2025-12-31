@@ -33,6 +33,13 @@ export const translations = {
     generate: "Generate",
     generating: "Generating...",
     
+    // Improve features
+    improvePrompt: "Improve Prompt",
+    improveImage: "Improve Image",
+    improving: "Improving...",
+    promptImproved: "Prompt improved!",
+    imageImproveStarted: "Generating improved version...",
+    
     // Right Panel
     effectsStyles: "Effects & Styles",
     selected: "selected",
@@ -90,6 +97,13 @@ export const translations = {
     describeVision: "صف رؤيتك...",
     generate: "إنشاء",
     generating: "جاري الإنشاء...",
+    
+    // Improve features
+    improvePrompt: "تحسين الوصف",
+    improveImage: "تحسين الصورة",
+    improving: "جاري التحسين...",
+    promptImproved: "تم تحسين الوصف!",
+    imageImproveStarted: "جاري إنشاء نسخة محسنة...",
     
     // Right Panel
     effectsStyles: "التأثيرات والأساليب",
