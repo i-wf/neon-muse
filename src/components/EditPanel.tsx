@@ -3,7 +3,12 @@ import {
   Wand2, Eye, Mountain, Star, Flame, Snowflake,
   Cloud, Moon, Sunset, Waves, TreePine, Building2,
   Aperture, Focus, Contrast, Lightbulb, Rainbow,
-  Ghost, Skull, Heart, Gem, Crown, Music
+  Ghost, Skull, Heart, Gem, Crown, Music, Smile,
+  Frown, Meh, Angry, Laugh, SmilePlus, CircleDot,
+  Glasses, CircleUser, Baby, Cat, Dog, Bird, Fish,
+  Flower2, Castle, Church, Factory, Warehouse,
+  Tent, Sailboat, Plane, Car, Rocket, Landmark,
+  Home, Store, School, Palmtree, Citrus, Grape
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "./ui/scroll-area";
@@ -63,7 +68,24 @@ export const EDIT_OPTIONS: EditOption[] = [
   { id: "double-exposure", name: "Double Exposure", nameAr: "تعريض مزدوج", promptAddition: "double exposure effect, overlay, merged images, artistic blend", icon: <Layers className="h-4 w-4" />, category: "Effects" },
   { id: "holographic", name: "Holographic", nameAr: "هولوغرافي", promptAddition: "holographic effect, iridescent, rainbow shimmer, futuristic", icon: <Sparkles className="h-4 w-4" />, category: "Effects" },
   
-  // Environment
+  // Facial Expressions & Emotions
+  { id: "happy", name: "Happy", nameAr: "سعيد", promptAddition: "happy expression, joyful smile, bright eyes, cheerful", icon: <Smile className="h-4 w-4" />, category: "Expression" },
+  { id: "sad", name: "Sad", nameAr: "حزين", promptAddition: "sad expression, melancholic, teary eyes, sorrowful look", icon: <Frown className="h-4 w-4" />, category: "Expression" },
+  { id: "smirk", name: "Smirking", nameAr: "مبتسم بخبث", promptAddition: "smirking expression, sly smile, mischievous look, one-sided grin", icon: <Meh className="h-4 w-4" />, category: "Expression" },
+  { id: "angry", name: "Angry", nameAr: "غاضب", promptAddition: "angry expression, furrowed brows, intense stare, fierce look", icon: <Angry className="h-4 w-4" />, category: "Expression" },
+  { id: "laughing", name: "Laughing", nameAr: "ضاحك", promptAddition: "laughing expression, wide smile, genuine laughter, crinkled eyes", icon: <Laugh className="h-4 w-4" />, category: "Expression" },
+  { id: "surprised", name: "Surprised", nameAr: "مندهش", promptAddition: "surprised expression, wide eyes, open mouth, shocked look", icon: <SmilePlus className="h-4 w-4" />, category: "Expression" },
+  { id: "thoughtful", name: "Thoughtful", nameAr: "متأمل", promptAddition: "thoughtful expression, contemplative, pensive look, deep in thought", icon: <CircleDot className="h-4 w-4" />, category: "Expression" },
+  { id: "confident", name: "Confident", nameAr: "واثق", promptAddition: "confident expression, self-assured, strong gaze, empowered look", icon: <CircleUser className="h-4 w-4" />, category: "Expression" },
+  { id: "mysterious", name: "Mysterious", nameAr: "غامض", promptAddition: "mysterious expression, enigmatic smile, secretive look, alluring", icon: <Eye className="h-4 w-4" />, category: "Expression" },
+  { id: "serene", name: "Serene", nameAr: "هادئ", promptAddition: "serene expression, peaceful, calm demeanor, tranquil look", icon: <Heart className="h-4 w-4" />, category: "Expression" },
+  { id: "fierce", name: "Fierce", nameAr: "شرس", promptAddition: "fierce expression, determined, warrior look, intense eyes", icon: <Flame className="h-4 w-4" />, category: "Expression" },
+  { id: "cute", name: "Cute", nameAr: "لطيف", promptAddition: "cute expression, adorable, innocent look, kawaii", icon: <Baby className="h-4 w-4" />, category: "Expression" },
+  { id: "cool", name: "Cool", nameAr: "رائع", promptAddition: "cool expression, relaxed confidence, stylish demeanor, chill vibes", icon: <Glasses className="h-4 w-4" />, category: "Expression" },
+  { id: "dreamy", name: "Dreamy", nameAr: "حالم", promptAddition: "dreamy expression, distant gaze, romantic look, wistful", icon: <Cloud className="h-4 w-4" />, category: "Expression" },
+  { id: "scared", name: "Scared", nameAr: "خائف", promptAddition: "scared expression, fearful eyes, trembling, anxious look", icon: <Ghost className="h-4 w-4" />, category: "Expression" },
+  
+  // Environment & Background
   { id: "underwater", name: "Underwater", nameAr: "تحت الماء", promptAddition: "underwater scene, ocean depths, caustic light, bubbles", icon: <Waves className="h-4 w-4" />, category: "Environment" },
   { id: "space", name: "Space", nameAr: "الفضاء", promptAddition: "outer space, nebula, stars, cosmic, galactic", icon: <Star className="h-4 w-4" />, category: "Environment" },
   { id: "forest", name: "Enchanted Forest", nameAr: "غابة ساحرة", promptAddition: "enchanted forest, mystical woods, fairy tale setting", icon: <TreePine className="h-4 w-4" />, category: "Environment" },
@@ -71,7 +93,22 @@ export const EDIT_OPTIONS: EditOption[] = [
   { id: "desert", name: "Desert", nameAr: "صحراء", promptAddition: "desert landscape, sand dunes, arid, golden sands", icon: <Mountain className="h-4 w-4" />, category: "Environment" },
   { id: "arctic", name: "Arctic", nameAr: "قطب شمالي", promptAddition: "arctic environment, ice, frozen landscape, aurora borealis", icon: <Snowflake className="h-4 w-4" />, category: "Environment" },
   { id: "haunted", name: "Haunted", nameAr: "مسكون", promptAddition: "haunted environment, spooky, abandoned, dark atmosphere, eerie", icon: <Ghost className="h-4 w-4" />, category: "Environment" },
-  { id: "tropical", name: "Tropical", nameAr: "استوائي", promptAddition: "tropical paradise, palm trees, crystal clear water, sunset beach", icon: <Sun className="h-4 w-4" />, category: "Environment" },
+  { id: "tropical", name: "Tropical", nameAr: "استوائي", promptAddition: "tropical paradise, palm trees, crystal clear water, sunset beach", icon: <Palmtree className="h-4 w-4" />, category: "Environment" },
+  { id: "medieval-castle", name: "Medieval Castle", nameAr: "قلعة", promptAddition: "medieval castle, stone walls, towers, fantasy kingdom", icon: <Castle className="h-4 w-4" />, category: "Environment" },
+  { id: "japanese-garden", name: "Japanese Garden", nameAr: "حديقة يابانية", promptAddition: "Japanese garden, zen, cherry blossoms, koi pond, serene", icon: <Flower2 className="h-4 w-4" />, category: "Environment" },
+  { id: "cyberpunk-city", name: "Cyberpunk City", nameAr: "مدينة سايبربانك", promptAddition: "cyberpunk city, neon signs, rain-slicked streets, holograms", icon: <Zap className="h-4 w-4" />, category: "Environment" },
+  { id: "ancient-ruins", name: "Ancient Ruins", nameAr: "آثار قديمة", promptAddition: "ancient ruins, crumbling temples, overgrown vegetation, lost civilization", icon: <Landmark className="h-4 w-4" />, category: "Environment" },
+  { id: "cozy-interior", name: "Cozy Interior", nameAr: "داخلي دافئ", promptAddition: "cozy interior, warm lighting, comfortable furniture, homey atmosphere", icon: <Home className="h-4 w-4" />, category: "Environment" },
+  { id: "futuristic-lab", name: "Futuristic Lab", nameAr: "مختبر مستقبلي", promptAddition: "futuristic laboratory, high-tech equipment, holographic displays, sci-fi", icon: <Factory className="h-4 w-4" />, category: "Environment" },
+  { id: "mountain-peak", name: "Mountain Peak", nameAr: "قمة جبل", promptAddition: "mountain peak, snowy summit, dramatic clouds, epic vista", icon: <Mountain className="h-4 w-4" />, category: "Environment" },
+  { id: "gothic-cathedral", name: "Gothic Cathedral", nameAr: "كاتدرائية قوطية", promptAddition: "gothic cathedral, stained glass, vaulted ceilings, candlelight", icon: <Church className="h-4 w-4" />, category: "Environment" },
+  { id: "apocalyptic", name: "Post-Apocalyptic", nameAr: "ما بعد نهاية العالم", promptAddition: "post-apocalyptic wasteland, destroyed buildings, overgrown, survival", icon: <Warehouse className="h-4 w-4" />, category: "Environment" },
+  { id: "cafe", name: "Cozy Café", nameAr: "مقهى", promptAddition: "cozy café interior, warm ambiance, coffee shop, inviting", icon: <Store className="h-4 w-4" />, category: "Environment" },
+  { id: "library", name: "Grand Library", nameAr: "مكتبة كبيرة", promptAddition: "grand library, endless bookshelves, ancient tomes, magical atmosphere", icon: <School className="h-4 w-4" />, category: "Environment" },
+  { id: "alien-planet", name: "Alien Planet", nameAr: "كوكب غريب", promptAddition: "alien planet, strange flora, multiple moons, otherworldly landscape", icon: <Rocket className="h-4 w-4" />, category: "Environment" },
+  { id: "vineyard", name: "Vineyard", nameAr: "كرم عنب", promptAddition: "vineyard, rolling hills, grape vines, golden hour, Tuscany", icon: <Grape className="h-4 w-4" />, category: "Environment" },
+  { id: "camping", name: "Campsite", nameAr: "مخيم", promptAddition: "campsite, tent, campfire, starry night, wilderness", icon: <Tent className="h-4 w-4" />, category: "Environment" },
+  { id: "sailing", name: "Ocean Voyage", nameAr: "رحلة بحرية", promptAddition: "sailing ship, open ocean, adventure, dramatic waves", icon: <Sailboat className="h-4 w-4" />, category: "Environment" },
   
   // Camera & Composition
   { id: "macro", name: "Macro Shot", nameAr: "لقطة ماكرو", promptAddition: "macro photography, extreme close-up, fine details", icon: <Focus className="h-4 w-4" />, category: "Camera" },
@@ -95,7 +132,8 @@ const categoryTranslations: Record<string, string> = {
   "Art Style": "أسلوب فني",
   "Lighting": "الإضاءة",
   "Effects": "تأثيرات",
-  "Environment": "البيئة",
+  "Expression": "تعبيرات الوجه",
+  "Environment": "البيئة والخلفية",
   "Camera": "الكاميرا",
   "Quality": "الجودة",
 };
@@ -111,6 +149,7 @@ export function EditPanel({ activeEdits, onEditToggle, isArabic = false }: EditP
     { key: "Art Style", color: "cyan" },
     { key: "Lighting", color: "magenta" },
     { key: "Effects", color: "purple" },
+    { key: "Expression", color: "pink" },
     { key: "Environment", color: "cyan" },
     { key: "Camera", color: "magenta" },
     { key: "Quality", color: "purple" },
@@ -121,6 +160,7 @@ export function EditPanel({ activeEdits, onEditToggle, isArabic = false }: EditP
       case "cyan": return "text-neon-cyan";
       case "magenta": return "text-neon-magenta";
       case "purple": return "text-neon-purple";
+      case "pink": return "text-neon-pink";
       default: return "text-neon-cyan";
     }
   };
