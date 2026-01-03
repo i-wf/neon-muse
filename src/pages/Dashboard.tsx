@@ -325,7 +325,7 @@ const Dashboard = () => {
       <NeonGrid />
 
       {/* Header */}
-      <header className="relative z-50 border-b border-border/30 backdrop-blur-sm shrink-0 bg-background/80">
+      <header className="relative z-50 shrink-0 glass border-b border-white/5">
         <div className="container mx-auto px-3 md:px-4 py-2 md:py-3 flex items-center justify-between">
           <div className="flex items-center gap-2 md:gap-4">
             <Link to="/">
@@ -341,7 +341,7 @@ const Dashboard = () => {
               variant="ghost" 
               size="sm"
               onClick={toggleLanguage}
-              className="text-muted-foreground hover:text-neon-cyan"
+              className="text-muted-foreground hover:text-primary"
               title={t("language")}
             >
               <Languages className="h-4 w-4" />
@@ -353,7 +353,7 @@ const Dashboard = () => {
               variant="ghost" 
               size="sm"
               onClick={toggleLeftPanel}
-              className="text-muted-foreground hover:text-neon-cyan hidden md:flex"
+              className="text-muted-foreground hover:text-primary hidden md:flex"
               title={leftPanelOpen ? t("hideSettings") : t("showSettings")}
             >
               {leftPanelOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
@@ -364,7 +364,7 @@ const Dashboard = () => {
               variant="ghost" 
               size="sm"
               onClick={toggleRightPanel}
-              className="text-muted-foreground hover:text-neon-magenta hidden md:flex"
+              className="text-muted-foreground hover:text-secondary hidden md:flex"
               title={rightPanelOpen ? t("hideEffects") : t("showEffects")}
             >
               {rightPanelOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
@@ -391,7 +391,7 @@ const Dashboard = () => {
 
         {/* Mobile dropdown menu */}
         {mobileMenuOpen && isMobile && (
-          <div className="absolute top-full left-0 right-0 bg-card/95 backdrop-blur-md border-b border-border/30 p-3 z-50">
+          <div className="absolute top-full left-0 right-0 glass-card border-b border-white/5 p-3 z-50">
             <div className="flex flex-col gap-2">
               <Button 
                 variant="ghost" 
@@ -440,29 +440,29 @@ const Dashboard = () => {
 
         {/* Left Panel - Image Upload & Model Selection */}
         <aside className={cn(
-          "border-r border-border/30 bg-card/95 backdrop-blur-md flex flex-col shrink-0 transition-all duration-300 ease-in-out",
+          "glass-card flex flex-col shrink-0 transition-all duration-300 ease-in-out",
           isMobile 
             ? leftPanelOpen 
-              ? "fixed inset-y-0 left-0 w-[85vw] max-w-sm z-40 pt-14" 
+              ? "fixed inset-y-0 left-0 w-[85vw] max-w-sm z-40 pt-14 rounded-r-2xl" 
               : "fixed -left-full w-0 z-40"
             : leftPanelOpen 
-              ? "relative w-72" 
-              : "w-0 overflow-hidden"
+              ? "relative w-72 m-3 rounded-2xl" 
+              : "w-0 overflow-hidden m-0"
         )}>
           {/* Panel header with close button for mobile */}
-          <div className="flex items-center justify-between p-3 border-b border-border/30 md:hidden">
-            <span className="font-display text-sm text-neon-cyan">{t("settings")}</span>
-            <Button variant="ghost" size="sm" onClick={() => setLeftPanelOpen(false)}>
+          <div className="flex items-center justify-between p-4 border-b border-white/5 md:hidden">
+            <span className="font-display text-sm text-primary">{t("settings")}</span>
+            <Button variant="ghost" size="sm" onClick={() => setLeftPanelOpen(false)} className="hover:bg-white/5">
               <X className="h-4 w-4" />
             </Button>
           </div>
           
-          <div className="p-3 md:p-4 space-y-4 overflow-y-auto flex-1">
+          <div className="p-4 space-y-5 overflow-y-auto flex-1">
             {/* Model Selector */}
-            <div>
+            <div className="glass-subtle rounded-xl p-4">
               <div className="flex items-center gap-2 mb-3">
-                <Settings2 className="h-4 w-4 text-neon-cyan" />
-                <h3 className="font-display text-sm text-neon-cyan uppercase tracking-wider">
+                <Settings2 className="h-4 w-4 text-primary" />
+                <h3 className="font-display text-sm text-primary uppercase tracking-wider">
                   {t("aiModel")}
                 </h3>
               </div>
@@ -477,10 +477,10 @@ const Dashboard = () => {
             </div>
 
             {/* Subject Reference */}
-            <div>
+            <div className="glass-subtle rounded-xl p-4">
               <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="h-4 w-4 text-neon-magenta" />
-                <h3 className="font-display text-sm text-neon-magenta uppercase tracking-wider">
+                <Sparkles className="h-4 w-4 text-secondary" />
+                <h3 className="font-display text-sm text-secondary uppercase tracking-wider">
                   {t("subjectReference")}
                 </h3>
               </div>
@@ -497,10 +497,10 @@ const Dashboard = () => {
             </div>
 
             {/* Style Reference */}
-            <div>
+            <div className="glass-subtle rounded-xl p-4">
               <div className="flex items-center gap-2 mb-3">
-                <Eye className="h-4 w-4 text-neon-cyan" />
-                <h3 className="font-display text-sm text-neon-cyan uppercase tracking-wider">
+                <Eye className="h-4 w-4 text-primary" />
+                <h3 className="font-display text-sm text-primary uppercase tracking-wider">
                   {t("styleInspiration")}
                 </h3>
               </div>
@@ -518,9 +518,9 @@ const Dashboard = () => {
 
             {/* Active Edits Summary */}
             {activeEdits.length > 0 && (
-              <div className="p-3 rounded-lg bg-muted/30 border border-border/30">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-muted-foreground font-body">{t("activeEffects")}</span>
+              <div className="p-4 rounded-xl glass-subtle border border-primary/20">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs text-muted-foreground font-body uppercase tracking-wide">{t("activeEffects")}</span>
                   <button 
                     onClick={handleClearAll}
                     className="text-xs text-destructive hover:underline"
@@ -528,17 +528,17 @@ const Dashboard = () => {
                     {t("clearAll")}
                   </button>
                 </div>
-                <div className="flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-2">
                   {activeEdits.slice(0, 6).map((edit) => (
                     <span 
                       key={edit.id}
-                      className="px-2 py-0.5 rounded bg-neon-cyan/20 text-neon-cyan text-xs"
+                      className="px-2.5 py-1 rounded-lg bg-primary/20 text-primary text-xs font-medium"
                     >
                       {isArabic ? edit.nameAr : edit.name}
                     </span>
                   ))}
                   {activeEdits.length > 6 && (
-                    <span className="px-2 py-0.5 rounded bg-muted text-muted-foreground text-xs">
+                    <span className="px-2.5 py-1 rounded-lg bg-muted text-muted-foreground text-xs">
                       +{activeEdits.length - 6} {t("more")}
                     </span>
                   )}
@@ -552,10 +552,10 @@ const Dashboard = () => {
         <main className="flex-1 flex flex-col overflow-hidden min-w-0 relative z-10">
           {/* Image History Strip */}
           {imageHistory.length > 0 && (
-            <div className="border-b border-border/30 bg-card/30 backdrop-blur-sm shrink-0">
-              <div className="flex items-center gap-2 px-3 md:px-4 pt-2">
-                <History className="h-4 w-4 text-neon-cyan" />
-                <span className="text-xs font-display text-neon-cyan uppercase tracking-wider">{t("generatedImages")}</span>
+            <div className="glass mx-3 mt-3 rounded-xl shrink-0">
+              <div className="flex items-center gap-2 px-4 pt-3">
+                <History className="h-4 w-4 text-primary" />
+                <span className="text-xs font-display text-primary uppercase tracking-wider">{t("generatedImages")}</span>
               </div>
               <ImageHistory 
                 images={imageHistory}
@@ -581,15 +581,15 @@ const Dashboard = () => {
           </div>
 
           {/* Bottom Prompt Bar */}
-          <div className="border-t border-border/30 bg-card/50 backdrop-blur-sm p-3 md:p-4 shrink-0">
+          <div className="glass mx-3 mb-3 rounded-xl p-4 shrink-0">
             {/* Final Prompt Preview */}
             {finalPrompt && (
-              <div className="mb-3 p-2 md:p-3 rounded-lg bg-muted/30 border border-border/30">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-muted-foreground font-body">{t("finalPrompt")}</span>
+              <div className="mb-4 p-3 rounded-xl bg-white/5 border border-white/10">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-muted-foreground font-body uppercase tracking-wide">{t("finalPrompt")}</span>
                   <button 
                     onClick={handleCopyPrompt}
-                    className="text-xs text-neon-cyan hover:underline flex items-center gap-1"
+                    className="text-xs text-primary hover:underline flex items-center gap-1"
                   >
                     {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                     {copied ? t("copied") : t("copy")}
@@ -601,7 +601,7 @@ const Dashboard = () => {
               </div>
             )}
 
-            <div className="flex flex-col gap-2 md:gap-3">
+            <div className="flex flex-col gap-3">
               {/* Improve Prompt button row */}
               {basePrompt.trim() && (
                 <div className="flex justify-end">
@@ -610,7 +610,7 @@ const Dashboard = () => {
                     size="sm"
                     onClick={handleImprovePrompt}
                     disabled={isImproving || isGenerating}
-                    className="border-neon-cyan/50 text-neon-cyan hover:bg-neon-cyan/10 gap-1"
+                    className="border-primary/30 text-primary hover:bg-primary/10 gap-1"
                   >
                     <Zap className="h-4 w-4" />
                     {isImproving ? t("improving") : t("improvePrompt")}
@@ -619,13 +619,13 @@ const Dashboard = () => {
               )}
               
               {/* Input and Generate button row */}
-              <div className="flex gap-2 md:gap-3">
+              <div className="flex gap-3">
                 <div className="flex-1 relative">
                   <Textarea
                     value={basePrompt}
                     onChange={(e) => setBasePrompt(e.target.value)}
                     placeholder={t("describeVision")}
-                    className="min-h-[50px] md:min-h-[60px] max-h-[100px] md:max-h-[120px] bg-muted/50 border-border/50 rounded-xl font-body resize-none pr-8 text-sm md:text-base"
+                    className="min-h-[50px] md:min-h-[60px] max-h-[100px] md:max-h-[120px] bg-white/5 border-white/10 rounded-xl font-body resize-none pr-8 text-sm md:text-base placeholder:text-muted-foreground/50"
                     dir={isArabic ? "rtl" : "ltr"}
                   />
                   {basePrompt && (
@@ -641,11 +641,11 @@ const Dashboard = () => {
                   )}
                 </div>
                 <Button
-                  variant="neonGradient"
+                  variant="default"
                   size={isMobile ? "default" : "lg"}
                   onClick={handleGenerate}
                   disabled={isGenerating || !finalPrompt}
-                  className="h-auto px-4 md:px-8 shrink-0"
+                  className="h-auto px-6 md:px-8 shrink-0 gradient-accent text-white border-0 glow-accent"
                 >
                   <Wand2 className="h-4 md:h-5 w-4 md:w-5" />
                   <span className="hidden sm:inline ml-2">
@@ -659,24 +659,24 @@ const Dashboard = () => {
 
         {/* Right Panel - Edit Options */}
         <aside className={cn(
-          "border-l border-border/30 bg-card/95 backdrop-blur-md shrink-0 overflow-hidden transition-all duration-300 ease-in-out",
+          "glass-card shrink-0 overflow-hidden transition-all duration-300 ease-in-out",
           isMobile 
             ? rightPanelOpen 
-              ? "fixed inset-y-0 right-0 w-[85vw] max-w-sm z-40 pt-14" 
+              ? "fixed inset-y-0 right-0 w-[85vw] max-w-sm z-40 pt-14 rounded-l-2xl" 
               : "fixed -right-full w-0 z-40"
             : rightPanelOpen 
-              ? "relative w-80" 
-              : "w-0"
+              ? "relative w-80 m-3 rounded-2xl" 
+              : "w-0 m-0"
         )}>
           {/* Panel header with close button for mobile */}
-          <div className="flex items-center justify-between p-3 border-b border-border/30 md:hidden">
-            <span className="font-display text-sm text-neon-magenta">{t("effects")}</span>
-            <Button variant="ghost" size="sm" onClick={() => setRightPanelOpen(false)}>
+          <div className="flex items-center justify-between p-4 border-b border-white/5 md:hidden">
+            <span className="font-display text-sm text-secondary">{t("effects")}</span>
+            <Button variant="ghost" size="sm" onClick={() => setRightPanelOpen(false)} className="hover:bg-white/5">
               <X className="h-4 w-4" />
             </Button>
           </div>
           
-          <div className="h-full p-3 md:p-4 overflow-y-auto">
+          <div className="h-full p-4 overflow-y-auto">
             <EditPanel 
               activeEdits={activeEdits}
               onEditToggle={handleEditToggle}
@@ -689,16 +689,16 @@ const Dashboard = () => {
       {/* Mobile floating action buttons */}
       {isMobile && (
         <div className={cn(
-          "fixed bottom-24 z-50 flex flex-col gap-2",
-          isArabic ? "left-3" : "right-3"
+          "fixed bottom-24 z-50 flex flex-col gap-3",
+          isArabic ? "left-4" : "right-4"
         )}>
           <button
             onClick={toggleLeftPanel}
             className={cn(
-              "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg",
+              "w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 glass-card glow-accent",
               leftPanelOpen 
-                ? "bg-neon-cyan text-background" 
-                : "bg-card/90 border border-neon-cyan/50 text-neon-cyan"
+                ? "gradient-accent text-white" 
+                : "text-primary"
             )}
           >
             <Settings2 className="h-5 w-5" />
@@ -706,10 +706,10 @@ const Dashboard = () => {
           <button
             onClick={toggleRightPanel}
             className={cn(
-              "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg",
+              "w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 glass-card glow-blue",
               rightPanelOpen 
-                ? "bg-neon-magenta text-background" 
-                : "bg-card/90 border border-neon-magenta/50 text-neon-magenta"
+                ? "gradient-accent text-white" 
+                : "text-secondary"
             )}
           >
             <Palette className="h-5 w-5" />
