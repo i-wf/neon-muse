@@ -51,42 +51,106 @@ const Dashboard = () => {
   
   const { saveImage } = useSaveToLibrary();
 
-  // Build the final prompt from base + active edits + reference elements
+  // Build the final prompt from base + active edits + reference elements + aspect ratio
   const buildFinalPrompt = useCallback(() => {
-    let prompt = basePrompt.trim();
+    const promptParts: string[] = [];
+    
+    // Build subject reference section with strict identity preservation
+    if (subjectImage && subjectElements.length > 0) {
+      const subjectParts: string[] = [];
+      
+      if (subjectElements.includes('face')) {
+        subjectParts.push("Use the uploaded image of the person as a STRICT visual reference for identity. Do NOT change the person's face, facial features, skin tone, hairstyle, beard, age, or expression. Preserve exact facial proportions and identity with maximum accuracy.");
+      }
+      if (subjectElements.includes('body')) {
+        subjectParts.push("Keep the original body type and proportions unchanged from the subject reference.");
+      }
+      if (subjectElements.includes('scene')) {
+        subjectParts.push("Reference the scene composition from the uploaded subject image.");
+      }
+      if (subjectElements.includes('background')) {
+        subjectParts.push("Use the background environment from the subject reference image.");
+      }
+      
+      if (subjectParts.length > 0) {
+        promptParts.push(subjectParts.join(" "));
+      }
+    }
+    
+    // Build style/inspiration reference section
+    if (styleImage && styleElements.length > 0) {
+      const styleParts: string[] = [];
+      
+      if (styleElements.includes('style')) {
+        styleParts.push("Apply the artistic style, lighting, color grading, and atmosphere from the inspiration reference image.");
+      }
+      if (styleElements.includes('background')) {
+        styleParts.push("Use the background and environment setting from the inspiration image.");
+      }
+      if (styleElements.includes('scene')) {
+        styleParts.push("Reference the scene composition and framing from the inspiration image.");
+      }
+      if (styleElements.includes('face')) {
+        styleParts.push("Reference facial expression style from the inspiration image while preserving subject identity.");
+      }
+      if (styleElements.includes('body')) {
+        styleParts.push("Reference the pose and body positioning from the inspiration image.");
+      }
+      
+      if (styleParts.length > 0) {
+        promptParts.push(styleParts.join(" "));
+      }
+    }
+    
+    // Add base prompt (user's description) with edits
+    let userPrompt = basePrompt.trim();
     
     if (activeEdits.length > 0) {
       const editPrompts = activeEdits.map(e => e.promptAddition).join(", ");
-      if (prompt) {
-        prompt = `${prompt}, ${editPrompts}`;
+      if (userPrompt) {
+        userPrompt = `${userPrompt}, ${editPrompts}`;
       } else {
-        prompt = editPrompts;
+        userPrompt = editPrompts;
       }
     }
     
-    // Auto-generate prompt from selected elements if no manual prompt
-    if (!prompt && (subjectImage || styleImage)) {
-      const parts: string[] = [];
-      
-      if (subjectImage && subjectElements.length > 0) {
-        parts.push(`Use the ${subjectElements.join(", ")} from the subject reference`);
-      }
-      
-      if (styleImage && styleElements.length > 0) {
-        parts.push(`apply the ${styleElements.join(", ")} from the style reference`);
-      }
-      
-      if (parts.length > 0) {
-        prompt = parts.join(" and ");
+    // If we have a subject image with face, always reference "the same person from the uploaded image"
+    if (subjectImage && subjectElements.includes('face') && userPrompt) {
+      if (!userPrompt.toLowerCase().includes('same person') && !userPrompt.toLowerCase().includes('uploaded image')) {
+        userPrompt = `A cinematic scene featuring the same person from the uploaded subject image: ${userPrompt}`;
       }
     }
     
-    if (prompt) {
-      prompt = `${prompt}, highly detailed, professional quality`;
+    if (userPrompt) {
+      promptParts.push(userPrompt);
+    } else if (subjectImage || styleImage) {
+      // Auto-generate basic prompt if no user prompt but references exist
+      if (subjectImage && subjectElements.includes('face')) {
+        promptParts.push("Generate an ultra-realistic image of the same person from the uploaded subject image in a new setting based on the provided references.");
+      } else {
+        promptParts.push("Generate an image based on the provided reference images.");
+      }
     }
     
-    return prompt;
-  }, [basePrompt, activeEdits, subjectImage, styleImage, subjectElements, styleElements]);
+    // Add aspect ratio to the prompt
+    const aspectRatioDescriptions: Record<string, string> = {
+      "1:1": "Square format (1:1 aspect ratio)",
+      "16:9": "Widescreen cinematic format (16:9 aspect ratio)",
+      "9:16": "Vertical portrait format (9:16 aspect ratio)",
+      "4:3": "Standard format (4:3 aspect ratio)",
+      "3:4": "Vertical format (3:4 aspect ratio)",
+      "21:9": "Ultra-wide cinematic format (21:9 aspect ratio)",
+      "3:2": "Classic photo format (3:2 aspect ratio)",
+      "2:3": "Vertical classic format (2:3 aspect ratio)",
+    };
+    
+    promptParts.push(aspectRatioDescriptions[selectedAspectRatio.ratio] || `${selectedAspectRatio.ratio} aspect ratio`);
+    
+    // Add quality enhancers
+    promptParts.push("Ultra-high resolution, photorealistic, sharp focus on subject, professional movie-poster composition, premium cinematic quality, cinematic lighting, volumetric light, highly detailed, 8K.");
+    
+    return promptParts.join("\n\n");
+  }, [basePrompt, activeEdits, subjectImage, styleImage, subjectElements, styleElements, selectedAspectRatio]);
 
   const finalPrompt = buildFinalPrompt();
 
