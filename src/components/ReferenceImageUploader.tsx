@@ -1,9 +1,10 @@
 import { useCallback, useState } from "react";
-import { Upload, X, ImageIcon, Sparkles, Eye } from "lucide-react";
+import { Upload, X, ImageIcon, Sparkles, Eye, Wand2, Loader2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Slider } from "./ui/slider";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ReferenceImageUploaderProps {
   referenceImage: string | null;
@@ -14,6 +15,7 @@ interface ReferenceImageUploaderProps {
   type: "subject" | "style";
   title: string;
   description: string;
+  onStyleExtracted?: (stylePrompt: string) => void;
 }
 
 export function ReferenceImageUploader({ 
@@ -24,9 +26,36 @@ export function ReferenceImageUploader({
   onInfluenceChange,
   type,
   title,
-  description
+  description,
+  onStyleExtracted
 }: ReferenceImageUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
+
+  const handleExtractStyle = async () => {
+    if (!referenceImage || !onStyleExtracted) return;
+    
+    setIsExtracting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('extract-style', {
+        body: { imageUrl: referenceImage }
+      });
+
+      if (error) throw error;
+      
+      if (data?.stylePrompt) {
+        onStyleExtracted(data.stylePrompt);
+        toast.success("Style extracted! Prompt updated.");
+      } else {
+        throw new Error("No style prompt returned");
+      }
+    } catch (error) {
+      console.error("Style extraction error:", error);
+      toast.error("Failed to extract style");
+    } finally {
+      setIsExtracting(false);
+    }
+  };
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -100,6 +129,22 @@ export function ReferenceImageUploader({
             className="w-full h-32 object-cover"
           />
           <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+            {type === "style" && onStyleExtracted && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleExtractStyle}
+                disabled={isExtracting}
+                className="glass-subtle"
+              >
+                {isExtracting ? (
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                ) : (
+                  <Wand2 className="h-4 w-4 mr-1" />
+                )}
+                Extract Style
+              </Button>
+            )}
             <Button
               variant="destructive"
               size="sm"
