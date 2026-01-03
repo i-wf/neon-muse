@@ -7,6 +7,7 @@ import { GeneratedImage } from "@/components/GeneratedImage";
 import { EditPanel, type EditOption } from "@/components/EditPanel";
 import { ReferenceImageUploader } from "@/components/ReferenceImageUploader";
 import { ModelSelector, AI_MODELS, type AIModel } from "@/components/ModelSelector";
+import { AspectRatioSelector, ASPECT_RATIOS, type AspectRatio } from "@/components/AspectRatioSelector";
 import { ImaginaryLogo } from "@/components/ImaginaryLogo";
 import { ImageHistory, type HistoryImage } from "@/components/ImageHistory";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -14,7 +15,7 @@ import {
   Wand2, Sparkles, Copy, Check, 
   Home, ChevronRight, Settings2, X,
   PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen,
-  Eye, History, Menu, Palette, Languages, Zap
+  Eye, History, Menu, Palette, Languages, Zap, Ratio
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -35,7 +36,8 @@ const Dashboard = () => {
   const [isImproving, setIsImproving] = useState(false);
   const [isImprovingImage, setIsImprovingImage] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
+  const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[1]);
+  const [selectedAspectRatio, setSelectedAspectRatio] = useState<AspectRatio>(ASPECT_RATIOS[0]);
   const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false);
   const [leftPanelOpen, setLeftPanelOpen] = useState(!isMobile);
   const [rightPanelOpen, setRightPanelOpen] = useState(!isMobile);
@@ -120,7 +122,10 @@ const Dashboard = () => {
             referenceImage: subjectImage,
             styleImage: styleImage,
             subjectInfluence: subjectInfluence,
-            styleInfluence: styleInfluence
+            styleInfluence: styleInfluence,
+            aspectRatio: selectedAspectRatio.ratio,
+            width: selectedAspectRatio.width,
+            height: selectedAspectRatio.height
           }),
         }
       );
@@ -472,6 +477,21 @@ const Dashboard = () => {
                 isOpen={isModelSelectorOpen}
                 onToggle={() => setIsModelSelectorOpen(!isModelSelectorOpen)}
                 compact={isMobile}
+                isArabic={isArabic}
+              />
+            </div>
+
+            {/* Aspect Ratio Selector */}
+            <div className="glass-subtle rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Ratio className="h-4 w-4 text-secondary" />
+                <h3 className="font-display text-sm text-secondary uppercase tracking-wider">
+                  {isArabic ? "نسبة الأبعاد" : "Aspect Ratio"}
+                </h3>
+              </div>
+              <AspectRatioSelector
+                selectedRatio={selectedAspectRatio}
+                onRatioChange={setSelectedAspectRatio}
                 isArabic={isArabic}
               />
             </div>
