@@ -51,7 +51,7 @@ const Dashboard = () => {
   
   const { saveImage } = useSaveToLibrary();
 
-  // Build the final prompt from base + active edits
+  // Build the final prompt from base + active edits + reference elements
   const buildFinalPrompt = useCallback(() => {
     let prompt = basePrompt.trim();
     
@@ -64,12 +64,29 @@ const Dashboard = () => {
       }
     }
     
+    // Auto-generate prompt from selected elements if no manual prompt
+    if (!prompt && (subjectImage || styleImage)) {
+      const parts: string[] = [];
+      
+      if (subjectImage && subjectElements.length > 0) {
+        parts.push(`Use the ${subjectElements.join(", ")} from the subject reference`);
+      }
+      
+      if (styleImage && styleElements.length > 0) {
+        parts.push(`apply the ${styleElements.join(", ")} from the style reference`);
+      }
+      
+      if (parts.length > 0) {
+        prompt = parts.join(" and ");
+      }
+    }
+    
     if (prompt) {
       prompt = `${prompt}, highly detailed, professional quality`;
     }
     
     return prompt;
-  }, [basePrompt, activeEdits]);
+  }, [basePrompt, activeEdits, subjectImage, styleImage, subjectElements, styleElements]);
 
   const finalPrompt = buildFinalPrompt();
 
