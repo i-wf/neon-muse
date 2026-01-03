@@ -14,7 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      collections: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      generated_images: {
+        Row: {
+          collection_id: string | null
+          created_at: string
+          id: string
+          model: string | null
+          prompt: string
+          url: string
+          user_id: string | null
+        }
+        Insert: {
+          collection_id?: string | null
+          created_at?: string
+          id?: string
+          model?: string | null
+          prompt: string
+          url: string
+          user_id?: string | null
+        }
+        Update: {
+          collection_id?: string | null
+          created_at?: string
+          id?: string
+          model?: string | null
+          prompt?: string
+          url?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generated_images_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
