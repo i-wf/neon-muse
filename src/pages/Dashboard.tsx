@@ -10,12 +10,14 @@ import { ModelSelector, AI_MODELS, type AIModel } from "@/components/ModelSelect
 import { AspectRatioSelector, ASPECT_RATIOS, type AspectRatio } from "@/components/AspectRatioSelector";
 import { ImaginaryLogo } from "@/components/ImaginaryLogo";
 import { ImageHistory, type HistoryImage } from "@/components/ImageHistory";
+import { ImageLibrary, useSaveToLibrary } from "@/components/ImageLibrary";
+import { LibraryPicker } from "@/components/LibraryPicker";
 import { useTranslation } from "@/hooks/useTranslation";
 import { 
   Wand2, Sparkles, Copy, Check, 
   Home, ChevronRight, Settings2, X,
   PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen,
-  Eye, History, Menu, Palette, Languages, Zap, Ratio
+  Eye, History, Menu, Palette, Languages, Zap, Ratio, Library
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -45,6 +47,9 @@ const Dashboard = () => {
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | undefined>();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentImagePrompt, setCurrentImagePrompt] = useState<string>("");
+  const [showLibrary, setShowLibrary] = useState(false);
+  
+  const { saveImage } = useSaveToLibrary();
 
   // Build the final prompt from base + active edits
   const buildFinalPrompt = useCallback(() => {
@@ -150,6 +155,9 @@ const Dashboard = () => {
         createdAt: new Date(),
       };
       setImageHistory(prev => [historyItem, ...prev]);
+      
+      // Save to library database
+      saveImage(newImage, finalPrompt, selectedModel.apiModel);
       setSelectedHistoryId(historyItem.id);
       
       toast.success(t("imageGenerated"));
@@ -498,11 +506,14 @@ const Dashboard = () => {
 
             {/* Subject Reference */}
             <div className="glass-subtle rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="h-4 w-4 text-secondary" />
-                <h3 className="font-display text-sm text-secondary uppercase tracking-wider">
-                  {t("subjectReference")}
-                </h3>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-secondary" />
+                  <h3 className="font-display text-sm text-secondary uppercase tracking-wider">
+                    {t("subjectReference")}
+                  </h3>
+                </div>
+                <LibraryPicker onSelect={setSubjectImage} />
               </div>
               <ReferenceImageUploader 
                 referenceImage={subjectImage}
@@ -518,11 +529,14 @@ const Dashboard = () => {
 
             {/* Style Reference */}
             <div className="glass-subtle rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Eye className="h-4 w-4 text-primary" />
-                <h3 className="font-display text-sm text-primary uppercase tracking-wider">
-                  {t("styleInspiration")}
-                </h3>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Eye className="h-4 w-4 text-primary" />
+                  <h3 className="font-display text-sm text-primary uppercase tracking-wider">
+                    {t("styleInspiration")}
+                  </h3>
+                </div>
+                <LibraryPicker onSelect={setStyleImage} />
               </div>
               <ReferenceImageUploader 
                 referenceImage={styleImage}
@@ -538,6 +552,23 @@ const Dashboard = () => {
                 }}
               />
             </div>
+
+            {/* Library Button */}
+            <Button
+              variant="outline"
+              className="w-full border-primary/30 text-primary hover:bg-primary/10"
+              onClick={() => setShowLibrary(!showLibrary)}
+            >
+              <Library className="h-4 w-4 mr-2" />
+              {showLibrary ? (isArabic ? "إخفاء المكتبة" : "Hide Library") : (isArabic ? "عرض المكتبة" : "Show Library")}
+            </Button>
+
+            {/* Library Panel */}
+            {showLibrary && (
+              <div className="glass-subtle rounded-xl overflow-hidden h-80">
+                <ImageLibrary />
+              </div>
+            )}
 
             {/* Active Edits Summary */}
             {activeEdits.length > 0 && (
