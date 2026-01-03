@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { 
   FolderPlus, Folder, Image as ImageIcon, X, Check, Trash2, 
-  Search, Edit2, CheckSquare, Square, FolderInput, Star, StarOff
+  Search, Edit2, CheckSquare, Square, FolderInput, Upload, Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -50,6 +50,9 @@ export function ImageLibrary({ onSelectImage, selectionMode = false }: ImageLibr
   const [editName, setEditName] = useState("");
   const [editDesc, setEditDesc] = useState("");
   const [showFavorites, setShowFavorites] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadToCollection, setUploadToCollection] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchCollections();
@@ -134,6 +137,87 @@ export function ImageLibrary({ onSelectImage, selectionMode = false }: ImageLibr
     ));
     setEditingCollection(null);
     toast.success("Collection updated!");
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploading(true);
+    let successCount = 0;
+
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith("image/")) {
+        toast.error(`${file.name} is not an image`);
+        continue;
+      }
+
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`${file.name} is too large (max 10MB)`);
+        continue;
+      }
+
+      try {
+        // Convert to base64
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+
+        // Upload to Cloudinary
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+        const response = await fetch(`${supabaseUrl}/functions/v1/upload-image`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${supabaseKey}`,
+          },
+          body: JSON.stringify({ 
+            image: base64,
+            folder: "library"
+          }),
+        });
+
+        if (!response.ok) throw new Error("Upload failed");
+
+        const data = await response.json();
+        const imageUrl = data.url;
+
+        // Save to database
+        const { error } = await supabase
+          .from("generated_images")
+          .insert({ 
+            url: imageUrl, 
+            prompt: file.name.replace(/\.[^/.]+$/, ""), // Use filename as prompt
+            collection_id: uploadToCollection 
+          });
+
+        if (error) throw error;
+
+        successCount++;
+      } catch (error) {
+        console.error("Upload error:", error);
+        toast.error(`Failed to upload ${file.name}`);
+      }
+    }
+
+    if (successCount > 0) {
+      toast.success(`Uploaded ${successCount} image${successCount > 1 ? "s" : ""}`);
+      fetchImages();
+    }
+
+    setIsUploading(false);
+    setUploadToCollection(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const triggerUpload = (collectionId: string | null = null) => {
+    setUploadToCollection(collectionId);
+    fileInputRef.current?.click();
   };
 
   const deleteCollection = async (id: string) => {
@@ -252,6 +336,16 @@ export function ImageLibrary({ onSelectImage, selectionMode = false }: ImageLibr
 
   return (
     <div className="flex flex-col h-full">
+      {/* Hidden file input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileUpload}
+        accept="image/*"
+        multiple
+        className="hidden"
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-white/10">
         <h3 className="text-sm font-display text-primary uppercase tracking-wider flex items-center gap-2">
@@ -260,6 +354,22 @@ export function ImageLibrary({ onSelectImage, selectionMode = false }: ImageLibr
         </h3>
         
         <div className="flex items-center gap-2">
+          {/* Upload button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 text-xs"
+            onClick={() => triggerUpload(selectedCollection)}
+            disabled={isUploading}
+          >
+            {isUploading ? (
+              <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+            ) : (
+              <Upload className="h-3.5 w-3.5 mr-1" />
+            )}
+            Upload
+          </Button>
+          
           {/* Multi-select toggle */}
           <Button
             variant={multiSelectMode ? "default" : "ghost"}
@@ -364,6 +474,16 @@ export function ImageLibrary({ onSelectImage, selectionMode = false }: ImageLibr
                 
                 {/* Collection actions */}
                 <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-0.5">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      triggerUpload(collection.id);
+                    }}
+                    className="text-secondary hover:text-secondary"
+                    title="Upload to collection"
+                  >
+                    <Upload className="h-3 w-3" />
+                  </button>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
