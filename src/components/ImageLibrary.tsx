@@ -4,7 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FolderPlus, Folder, Image as ImageIcon, X, Check, Trash2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { 
+  FolderPlus, Folder, Image as ImageIcon, X, Check, Trash2, 
+  Search, Edit2, CheckSquare, Square, FolderInput, Star, StarOff
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -23,6 +27,7 @@ interface LibraryImage {
   model: string | null;
   collection_id: string | null;
   created_at: string;
+  is_favorite?: boolean;
 }
 
 interface ImageLibraryProps {
@@ -35,8 +40,16 @@ export function ImageLibrary({ onSelectImage, selectionMode = false }: ImageLibr
   const [images, setImages] = useState<LibraryImage[]>([]);
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
   const [newCollectionName, setNewCollectionName] = useState("");
+  const [newCollectionDesc, setNewCollectionDesc] = useState("");
   const [isCreatingCollection, setIsCreatingCollection] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
+  const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDesc, setEditDesc] = useState("");
+  const [showFavorites, setShowFavorites] = useState(false);
 
   useEffect(() => {
     fetchCollections();
@@ -78,7 +91,10 @@ export function ImageLibrary({ onSelectImage, selectionMode = false }: ImageLibr
     setIsCreatingCollection(true);
     const { data, error } = await supabase
       .from("collections")
-      .insert({ name: newCollectionName.trim() })
+      .insert({ 
+        name: newCollectionName.trim(),
+        description: newCollectionDesc.trim() || null
+      })
       .select()
       .single();
     
@@ -90,8 +106,34 @@ export function ImageLibrary({ onSelectImage, selectionMode = false }: ImageLibr
     
     setCollections([data, ...collections]);
     setNewCollectionName("");
+    setNewCollectionDesc("");
     setIsCreatingCollection(false);
     toast.success("Collection created!");
+  };
+
+  const updateCollection = async () => {
+    if (!editingCollection || !editName.trim()) return;
+    
+    const { error } = await supabase
+      .from("collections")
+      .update({ 
+        name: editName.trim(),
+        description: editDesc.trim() || null
+      })
+      .eq("id", editingCollection.id);
+    
+    if (error) {
+      toast.error("Failed to update collection");
+      return;
+    }
+    
+    setCollections(collections.map(c => 
+      c.id === editingCollection.id 
+        ? { ...c, name: editName.trim(), description: editDesc.trim() || null }
+        : c
+    ));
+    setEditingCollection(null);
+    toast.success("Collection updated!");
   };
 
   const deleteCollection = async (id: string) => {
@@ -122,6 +164,46 @@ export function ImageLibrary({ onSelectImage, selectionMode = false }: ImageLibr
     toast.success(collectionId ? "Added to collection" : "Removed from collection");
   };
 
+  const moveSelectedToCollection = async (collectionId: string | null) => {
+    if (selectedImages.size === 0) return;
+    
+    const { error } = await supabase
+      .from("generated_images")
+      .update({ collection_id: collectionId })
+      .in("id", Array.from(selectedImages));
+    
+    if (error) {
+      toast.error("Failed to move images");
+      return;
+    }
+    
+    setImages(images.map(img => 
+      selectedImages.has(img.id) ? { ...img, collection_id: collectionId } : img
+    ));
+    setSelectedImages(new Set());
+    setMultiSelectMode(false);
+    toast.success(`Moved ${selectedImages.size} images`);
+  };
+
+  const deleteSelectedImages = async () => {
+    if (selectedImages.size === 0) return;
+    
+    const { error } = await supabase
+      .from("generated_images")
+      .delete()
+      .in("id", Array.from(selectedImages));
+    
+    if (error) {
+      toast.error("Failed to delete images");
+      return;
+    }
+    
+    setImages(images.filter(img => !selectedImages.has(img.id)));
+    setSelectedImages(new Set());
+    setMultiSelectMode(false);
+    toast.success(`Deleted ${selectedImages.size} images`);
+  };
+
   const deleteImage = async (id: string) => {
     const { error } = await supabase.from("generated_images").delete().eq("id", id);
     if (error) {
@@ -132,9 +214,41 @@ export function ImageLibrary({ onSelectImage, selectionMode = false }: ImageLibr
     toast.success("Image deleted");
   };
 
-  const filteredImages = selectedCollection
-    ? images.filter(img => img.collection_id === selectedCollection)
-    : images;
+  const toggleImageSelection = (id: string) => {
+    const newSet = new Set(selectedImages);
+    if (newSet.has(id)) {
+      newSet.delete(id);
+    } else {
+      newSet.add(id);
+    }
+    setSelectedImages(newSet);
+  };
+
+  const selectAll = () => {
+    const allIds = new Set(filteredImages.map(img => img.id));
+    setSelectedImages(allIds);
+  };
+
+  const deselectAll = () => {
+    setSelectedImages(new Set());
+  };
+
+  // Get image count per collection
+  const getCollectionImageCount = (collectionId: string) => {
+    return images.filter(img => img.collection_id === collectionId).length;
+  };
+
+  // Filter images
+  const filteredImages = images.filter(img => {
+    const matchesCollection = selectedCollection 
+      ? img.collection_id === selectedCollection 
+      : true;
+    const matchesSearch = searchQuery 
+      ? img.prompt.toLowerCase().includes(searchQuery.toLowerCase())
+      : true;
+    const matchesFavorites = showFavorites ? img.is_favorite : true;
+    return matchesCollection && matchesSearch && matchesFavorites;
+  });
 
   return (
     <div className="flex flex-col h-full">
@@ -145,30 +259,74 @@ export function ImageLibrary({ onSelectImage, selectionMode = false }: ImageLibr
           Library ({images.length})
         </h3>
         
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 text-xs">
-              <FolderPlus className="h-3.5 w-3.5 mr-1" />
-              New Collection
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-background/95 backdrop-blur-xl border-white/10">
-            <DialogHeader>
-              <DialogTitle>Create Collection</DialogTitle>
-            </DialogHeader>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Collection name..."
-                value={newCollectionName}
-                onChange={(e) => setNewCollectionName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && createCollection()}
-              />
-              <Button onClick={createCollection} disabled={isCreatingCollection}>
-                <Check className="h-4 w-4" />
+        <div className="flex items-center gap-2">
+          {/* Multi-select toggle */}
+          <Button
+            variant={multiSelectMode ? "default" : "ghost"}
+            size="sm"
+            className="h-8 text-xs"
+            onClick={() => {
+              setMultiSelectMode(!multiSelectMode);
+              setSelectedImages(new Set());
+            }}
+          >
+            <CheckSquare className="h-3.5 w-3.5 mr-1" />
+            Select
+          </Button>
+          
+          {/* New Collection Dialog */}
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 text-xs">
+                <FolderPlus className="h-3.5 w-3.5 mr-1" />
+                New
               </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="bg-background/95 backdrop-blur-xl border-white/10">
+              <DialogHeader>
+                <DialogTitle>Create Collection</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                <Input
+                  placeholder="Collection name..."
+                  value={newCollectionName}
+                  onChange={(e) => setNewCollectionName(e.target.value)}
+                />
+                <Textarea
+                  placeholder="Description (optional)..."
+                  value={newCollectionDesc}
+                  onChange={(e) => setNewCollectionDesc(e.target.value)}
+                  className="min-h-[80px]"
+                />
+                <Button onClick={createCollection} disabled={isCreatingCollection} className="w-full">
+                  <Check className="h-4 w-4 mr-2" />
+                  Create Collection
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {/* Search Bar */}
+      <div className="p-3 border-b border-white/10">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by prompt..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 h-8 text-sm"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Collection Filter */}
@@ -176,38 +334,100 @@ export function ImageLibrary({ onSelectImage, selectionMode = false }: ImageLibr
         <ScrollArea className="w-full">
           <div className="flex gap-2">
             <Button
-              variant={selectedCollection === null ? "default" : "outline"}
+              variant={selectedCollection === null && !showFavorites ? "default" : "outline"}
               size="sm"
               className="shrink-0 h-7 text-xs"
-              onClick={() => setSelectedCollection(null)}
+              onClick={() => {
+                setSelectedCollection(null);
+                setShowFavorites(false);
+              }}
             >
-              All
+              All ({images.length})
             </Button>
+            
             {collections.map((collection) => (
               <div key={collection.id} className="relative group shrink-0">
                 <Button
                   variant={selectedCollection === collection.id ? "default" : "outline"}
                   size="sm"
-                  className="h-7 text-xs pr-6"
-                  onClick={() => setSelectedCollection(collection.id)}
+                  className="h-7 text-xs pr-8"
+                  onClick={() => {
+                    setSelectedCollection(collection.id);
+                    setShowFavorites(false);
+                  }}
+                  title={collection.description || undefined}
                 >
                   <Folder className="h-3 w-3 mr-1" />
                   {collection.name}
+                  <span className="ml-1 opacity-60">({getCollectionImageCount(collection.id)})</span>
                 </Button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteCollection(collection.id);
-                  }}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
-                >
-                  <X className="h-3 w-3" />
-                </button>
+                
+                {/* Collection actions */}
+                <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-0.5">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingCollection(collection);
+                      setEditName(collection.name);
+                      setEditDesc(collection.description || "");
+                    }}
+                    className="text-primary hover:text-primary"
+                  >
+                    <Edit2 className="h-3 w-3" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteCollection(collection.id);
+                    }}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         </ScrollArea>
       </div>
+
+      {/* Multi-select actions */}
+      {multiSelectMode && selectedImages.size > 0 && (
+        <div className="p-3 border-b border-white/10 flex items-center gap-2 flex-wrap">
+          <span className="text-xs text-muted-foreground">{selectedImages.size} selected</span>
+          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={selectAll}>
+            Select All
+          </Button>
+          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={deselectAll}>
+            Deselect
+          </Button>
+          
+          <Select onValueChange={(value) => moveSelectedToCollection(value === "none" ? null : value)}>
+            <SelectTrigger className="h-7 text-xs w-32">
+              <FolderInput className="h-3 w-3 mr-1" />
+              Move to...
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">No Collection</SelectItem>
+              {collections.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          <Button
+            variant="destructive"
+            size="sm"
+            className="h-7 text-xs"
+            onClick={deleteSelectedImages}
+          >
+            <Trash2 className="h-3 w-3 mr-1" />
+            Delete
+          </Button>
+        </div>
+      )}
 
       {/* Image Grid */}
       <ScrollArea className="flex-1 p-3">
@@ -215,7 +435,7 @@ export function ImageLibrary({ onSelectImage, selectionMode = false }: ImageLibr
           <div className="text-center text-muted-foreground text-sm py-8">Loading...</div>
         ) : filteredImages.length === 0 ? (
           <div className="text-center text-muted-foreground text-sm py-8">
-            {selectedCollection ? "No images in this collection" : "No images yet. Generate some!"}
+            {searchQuery ? "No images match your search" : selectedCollection ? "No images in this collection" : "No images yet. Generate some!"}
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-2">
@@ -223,10 +443,19 @@ export function ImageLibrary({ onSelectImage, selectionMode = false }: ImageLibr
               <div
                 key={image.id}
                 className={cn(
-                  "group relative aspect-square rounded-lg overflow-hidden cursor-pointer ring-1 ring-white/10 hover:ring-primary/50 transition-all",
+                  "group relative aspect-square rounded-lg overflow-hidden cursor-pointer transition-all",
+                  multiSelectMode && selectedImages.has(image.id) 
+                    ? "ring-2 ring-primary scale-95" 
+                    : "ring-1 ring-white/10 hover:ring-primary/50",
                   selectionMode && "hover:scale-105"
                 )}
-                onClick={() => selectionMode && onSelectImage?.(image.url)}
+                onClick={() => {
+                  if (multiSelectMode) {
+                    toggleImageSelection(image.id);
+                  } else if (selectionMode) {
+                    onSelectImage?.(image.url);
+                  }
+                }}
               >
                 <img
                   src={image.url}
@@ -234,53 +463,103 @@ export function ImageLibrary({ onSelectImage, selectionMode = false }: ImageLibr
                   className="w-full h-full object-cover"
                 />
                 
+                {/* Selection checkbox */}
+                {multiSelectMode && (
+                  <div className="absolute top-1 left-1">
+                    {selectedImages.has(image.id) ? (
+                      <CheckSquare className="h-5 w-5 text-primary drop-shadow-lg" />
+                    ) : (
+                      <Square className="h-5 w-5 text-white/70 drop-shadow-lg" />
+                    )}
+                  </div>
+                )}
+                
                 {/* Overlay */}
-                <div className="absolute inset-0 bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-2">
-                  {selectionMode ? (
-                    <Button size="sm" className="h-7 text-xs">
-                      <Check className="h-3 w-3 mr-1" />
-                      Select
-                    </Button>
-                  ) : (
-                    <>
-                      <Select
-                        value={image.collection_id || "none"}
-                        onValueChange={(value) => 
-                          addImageToCollection(image.id, value === "none" ? null : value)
-                        }
-                      >
-                        <SelectTrigger className="h-7 text-xs w-full">
-                          <SelectValue placeholder="Add to..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">No Collection</SelectItem>
-                          {collections.map((c) => (
-                            <SelectItem key={c.id} value={c.id}>
-                              {c.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        className="h-7 text-xs w-full"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteImage(image.id);
-                        }}
-                      >
-                        <Trash2 className="h-3 w-3 mr-1" />
-                        Delete
+                {!multiSelectMode && (
+                  <div className="absolute inset-0 bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-2">
+                    {selectionMode ? (
+                      <Button size="sm" className="h-7 text-xs">
+                        <Check className="h-3 w-3 mr-1" />
+                        Select
                       </Button>
-                    </>
-                  )}
-                </div>
+                    ) : (
+                      <>
+                        <Select
+                          value={image.collection_id || "none"}
+                          onValueChange={(value) => 
+                            addImageToCollection(image.id, value === "none" ? null : value)
+                          }
+                        >
+                          <SelectTrigger className="h-7 text-xs w-full">
+                            <SelectValue placeholder="Add to..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">No Collection</SelectItem>
+                            {collections.map((c) => (
+                              <SelectItem key={c.id} value={c.id}>
+                                {c.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="h-7 text-xs w-full"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteImage(image.id);
+                          }}
+                        >
+                          <Trash2 className="h-3 w-3 mr-1" />
+                          Delete
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
         )}
       </ScrollArea>
+
+      {/* Edit Collection Dialog */}
+      <Dialog open={!!editingCollection} onOpenChange={(open) => !open && setEditingCollection(null)}>
+        <DialogContent className="bg-background/95 backdrop-blur-xl border-white/10">
+          <DialogHeader>
+            <DialogTitle>Edit Collection</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              placeholder="Collection name..."
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+            />
+            <Textarea
+              placeholder="Description (optional)..."
+              value={editDesc}
+              onChange={(e) => setEditDesc(e.target.value)}
+              className="min-h-[80px]"
+            />
+            <div className="flex gap-2">
+              <Button onClick={updateCollection} className="flex-1">
+                <Check className="h-4 w-4 mr-2" />
+                Save Changes
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={() => {
+                  if (editingCollection) deleteCollection(editingCollection.id);
+                  setEditingCollection(null);
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
