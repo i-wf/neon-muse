@@ -46,23 +46,23 @@ export function ImageHistory({ images, onSelect, onDelete, selectedId }: ImageHi
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between px-2">
-        <h4 className="text-xs font-display text-neon-cyan uppercase tracking-wider">
+      <div className="flex items-center justify-between px-4">
+        <h4 className="text-xs font-display text-primary uppercase tracking-wider">
           History ({images.length})
         </h4>
       </div>
       
       <ScrollArea className="w-full">
-        <div className="flex gap-2 p-2">
+        <div className="flex gap-3 p-3">
           {images.map((image) => (
             <div
               key={image.id}
               onClick={() => onSelect(image)}
               className={cn(
-                "group relative shrink-0 w-20 h-20 rounded-lg overflow-hidden cursor-pointer border-2 transition-all",
+                "group relative shrink-0 w-20 h-20 rounded-xl overflow-hidden cursor-pointer transition-all duration-200",
                 selectedId === image.id 
-                  ? "border-neon-cyan shadow-[0_0_10px_rgba(0,255,255,0.3)]" 
-                  : "border-transparent hover:border-neon-cyan/50"
+                  ? "ring-2 ring-primary glow-purple scale-105" 
+                  : "ring-1 ring-white/10 hover:ring-primary/50 hover:scale-105"
               )}
             >
               <img 
@@ -72,36 +72,36 @@ export function ImageHistory({ images, onSelect, onDelete, selectedId }: ImageHi
               />
               
               {/* Overlay with actions */}
-              <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+              <div className="absolute inset-0 bg-background/90 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6 text-neon-cyan hover:text-neon-cyan"
+                  className="h-7 w-7 text-primary hover:text-primary hover:bg-primary/20"
                   onClick={(e) => {
                     e.stopPropagation();
                     onSelect(image);
                   }}
                 >
-                  <Maximize2 className="h-3 w-3" />
+                  <Maximize2 className="h-3.5 w-3.5" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6 text-neon-cyan hover:text-neon-cyan"
+                  className="h-7 w-7 text-secondary hover:text-secondary hover:bg-secondary/20"
                   onClick={(e) => handleDownload(image, e)}
                 >
-                  <Download className="h-3 w-3" />
+                  <Download className="h-3.5 w-3.5" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6 text-destructive hover:text-destructive"
+                  className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/20"
                   onClick={(e) => {
                     e.stopPropagation();
                     onDelete(image.id);
                   }}
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-3.5 w-3.5" />
                 </Button>
               </div>
             </div>

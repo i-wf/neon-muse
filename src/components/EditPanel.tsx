@@ -146,22 +146,21 @@ interface EditPanelProps {
 
 export function EditPanel({ activeEdits, onEditToggle, isArabic = false }: EditPanelProps) {
   const categories = [
-    { key: "Art Style", color: "cyan" },
-    { key: "Lighting", color: "magenta" },
-    { key: "Effects", color: "purple" },
-    { key: "Expression", color: "pink" },
-    { key: "Environment", color: "cyan" },
-    { key: "Camera", color: "magenta" },
-    { key: "Quality", color: "purple" },
+    { key: "Art Style", color: "primary" },
+    { key: "Lighting", color: "secondary" },
+    { key: "Effects", color: "accent" },
+    { key: "Expression", color: "primary" },
+    { key: "Environment", color: "secondary" },
+    { key: "Camera", color: "accent" },
+    { key: "Quality", color: "primary" },
   ] as const;
 
   const getCategoryColor = (color: string) => {
     switch (color) {
-      case "cyan": return "text-neon-cyan";
-      case "magenta": return "text-neon-magenta";
-      case "purple": return "text-neon-purple";
-      case "pink": return "text-neon-pink";
-      default: return "text-neon-cyan";
+      case "primary": return "text-primary";
+      case "secondary": return "text-secondary";
+      case "accent": return "text-accent-foreground";
+      default: return "text-primary";
     }
   };
 
@@ -170,13 +169,13 @@ export function EditPanel({ activeEdits, onEditToggle, isArabic = false }: EditP
       <div className="space-y-6 pb-4" dir={isArabic ? "rtl" : "ltr"}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Layers className="h-5 w-5 text-neon-cyan" />
-            <h2 className="font-display text-lg text-neon-cyan uppercase tracking-wider">
+            <Layers className="h-5 w-5 text-primary" />
+            <h2 className="font-display text-lg text-gradient uppercase tracking-wider">
               {isArabic ? "التأثيرات والأساليب" : "Effects & Styles"}
             </h2>
           </div>
           {activeEdits.length > 0 && (
-            <span className="px-3 py-1 rounded-full bg-neon-cyan/20 text-neon-cyan text-sm font-body">
+            <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-body">
               {activeEdits.length} {isArabic ? "محدد" : "selected"}
             </span>
           )}
@@ -186,7 +185,7 @@ export function EditPanel({ activeEdits, onEditToggle, isArabic = false }: EditP
           const categoryEdits = EDIT_OPTIONS.filter(e => e.category === key);
           return (
             <div key={key} className="space-y-3">
-              <h3 className={cn("font-body text-sm font-semibold", getCategoryColor(color))}>
+              <h3 className={cn("font-body text-sm font-semibold uppercase tracking-wide", getCategoryColor(color))}>
                 {isArabic ? categoryTranslations[key] : key}
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -197,10 +196,10 @@ export function EditPanel({ activeEdits, onEditToggle, isArabic = false }: EditP
                       key={edit.id}
                       onClick={() => onEditToggle(edit)}
                       className={cn(
-                        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border font-body text-xs transition-all duration-200",
+                        "inline-flex items-center gap-1.5 px-3 py-2 rounded-xl font-body text-xs transition-all duration-200",
                         isActive
-                          ? "border-neon-cyan bg-neon-cyan/20 text-neon-cyan shadow-[0_0_10px_hsl(var(--neon-cyan)/0.3)]"
-                          : "border-border/50 bg-card/50 text-muted-foreground hover:border-neon-cyan/50 hover:text-foreground"
+                          ? "bg-primary/20 text-primary border border-primary/30 glow-purple"
+                          : "glass-subtle text-muted-foreground hover:text-foreground hover:border-primary/20 border border-transparent"
                       )}
                     >
                       {edit.icon}
