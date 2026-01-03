@@ -533,6 +533,9 @@ const Dashboard = () => {
                 type="style"
                 title={t("styleReference")}
                 description={t("uploadStyle")}
+                onStyleExtracted={(stylePrompt) => {
+                  setBasePrompt(prev => prev ? `${prev}, ${stylePrompt}` : stylePrompt);
+                }}
               />
             </div>
 
