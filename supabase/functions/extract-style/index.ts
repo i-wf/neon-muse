@@ -21,28 +21,25 @@ serve(async (req) => {
       );
     }
 
-    console.log("Extracting style from image...");
+    console.log("Extracting description from image...");
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `You are an expert art analyst and prompt engineer. Your task is to analyze an image and extract its visual style into a reusable prompt that can be used to generate new images in the same style.
+    const systemPrompt = `You are an expert image analyst. Your task is to describe an image in detail so it can be used as a prompt to generate similar images.
 
-Focus on these aspects:
-1. **Art Style**: (e.g., photorealistic, anime, oil painting, watercolor, digital art, 3D render, concept art, etc.)
-2. **Color Palette**: Describe the dominant colors, color harmony, saturation levels, and mood
-3. **Lighting**: (e.g., dramatic shadows, soft diffused light, golden hour, neon lighting, etc.)
-4. **Texture & Details**: (e.g., smooth, grainy, detailed, minimal, etc.)
-5. **Atmosphere/Mood**: (e.g., dark and moody, bright and cheerful, ethereal, gritty, etc.)
-6. **Composition Style**: (e.g., cinematic, centered, dynamic angles, etc.)
-7. **Special Effects**: (e.g., bokeh, lens flare, grain, vignette, etc.)
+Describe:
+1. **Subject**: What is the main subject? (person, animal, object, scene)
+2. **Appearance**: Physical details, clothing, colors, features
+3. **Setting/Environment**: Where is this? Background details
+4. **Pose/Action**: What is happening? Body position, expression
+5. **Style**: Art style, lighting, mood, atmosphere
+6. **Composition**: Camera angle, framing
 
-DO NOT describe the actual content/subject of the image - only the STYLE.
-
-Return ONLY the style prompt, nothing else. Make it concise but comprehensive (2-4 sentences max).
-Format: Write it as a style instruction that can be appended to any subject prompt.`;
+Write a detailed but concise description (3-5 sentences) that captures everything needed to recreate this image.
+Return ONLY the description prompt, nothing else.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -62,7 +59,7 @@ Format: Write it as a style instruction that can be appended to any subject prom
             content: [
               {
                 type: "text",
-                text: "Analyze this image and extract its visual style as a reusable prompt. Focus only on the artistic style, not the subject matter.",
+                text: "Describe this image in detail. Include the subject, appearance, setting, actions, style, and composition.",
               },
               {
                 type: "image_url",
@@ -97,17 +94,17 @@ Format: Write it as a style instruction that can be appended to any subject prom
     }
 
     const data = await response.json();
-    const stylePrompt = data.choices?.[0]?.message?.content;
+    const description = data.choices?.[0]?.message?.content;
 
-    if (!stylePrompt) {
-      console.error("No style prompt in response:", JSON.stringify(data));
-      throw new Error("Failed to extract style from image");
+    if (!description) {
+      console.error("No description in response:", JSON.stringify(data));
+      throw new Error("Failed to extract description from image");
     }
 
-    console.log("Style extracted successfully:", stylePrompt);
+    console.log("Description extracted successfully:", description);
 
     return new Response(
-      JSON.stringify({ stylePrompt: stylePrompt.trim() }),
+      JSON.stringify({ stylePrompt: description.trim() }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
