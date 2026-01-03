@@ -1,29 +1,38 @@
 import { useCallback, useState } from "react";
-import { Upload, X, ImageIcon, Sparkles, Eye, Wand2, Loader2 } from "lucide-react";
+import { X, Sparkles, Eye, Wand2, Loader2, User, PersonStanding, Mountain, Frame, Palette } from "lucide-react";
 import { Button } from "./ui/button";
-import { Slider } from "./ui/slider";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+
+export type ElementSelection = "face" | "body" | "scene" | "background" | "style";
 
 interface ReferenceImageUploaderProps {
   referenceImage: string | null;
   onImageUpload: (imageUrl: string) => void;
   onImageRemove: () => void;
-  influenceStrength: number;
-  onInfluenceChange: (value: number) => void;
+  selectedElements: ElementSelection[];
+  onElementsChange: (elements: ElementSelection[]) => void;
   type: "subject" | "style";
   title: string;
   description: string;
   onStyleExtracted?: (stylePrompt: string) => void;
 }
 
+const ELEMENT_OPTIONS: { id: ElementSelection; label: string; icon: React.ReactNode }[] = [
+  { id: "face", label: "Face", icon: <User className="h-3 w-3" /> },
+  { id: "body", label: "Body", icon: <PersonStanding className="h-3 w-3" /> },
+  { id: "scene", label: "Scene", icon: <Mountain className="h-3 w-3" /> },
+  { id: "background", label: "Background", icon: <Frame className="h-3 w-3" /> },
+  { id: "style", label: "Style", icon: <Palette className="h-3 w-3" /> },
+];
+
 export function ReferenceImageUploader({ 
   referenceImage, 
   onImageUpload, 
   onImageRemove,
-  influenceStrength,
-  onInfluenceChange,
+  selectedElements,
+  onElementsChange,
   type,
   title,
   description,
@@ -162,27 +171,38 @@ export function ReferenceImageUploader({
           </div>
         </div>
         
-        {/* Influence Strength Slider */}
+        {/* Element Selection Buttons */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Influence</span>
-            <span className={cn(
-              "text-xs font-medium",
-              type === "subject" ? "text-neon-magenta" : "text-neon-cyan"
-            )}>
-              {Math.round(influenceStrength * 100)}%
-            </span>
+          <span className="text-xs text-muted-foreground">Take from this image:</span>
+          <div className="flex flex-wrap gap-1.5">
+            {ELEMENT_OPTIONS.map((element) => {
+              const isSelected = selectedElements.includes(element.id);
+              return (
+                <button
+                  key={element.id}
+                  type="button"
+                  onClick={() => {
+                    if (isSelected) {
+                      onElementsChange(selectedElements.filter(e => e !== element.id));
+                    } else {
+                      onElementsChange([...selectedElements, element.id]);
+                    }
+                  }}
+                  className={cn(
+                    "flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium transition-all",
+                    isSelected
+                      ? type === "subject" 
+                        ? "bg-neon-magenta text-white" 
+                        : "bg-neon-cyan text-black"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  )}
+                >
+                  {element.icon}
+                  {element.label}
+                </button>
+              );
+            })}
           </div>
-          <Slider
-            value={[influenceStrength * 100]}
-            onValueChange={(value) => onInfluenceChange(value[0] / 100)}
-            min={10}
-            max={100}
-            step={5}
-            className={cn(
-              type === "subject" ? "[&_[role=slider]]:bg-neon-magenta" : "[&_[role=slider]]:bg-neon-cyan"
-            )}
-          />
         </div>
       </div>
     );

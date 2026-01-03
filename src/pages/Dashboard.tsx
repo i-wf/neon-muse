@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { NeonGrid } from "@/components/NeonGrid";
 import { GeneratedImage } from "@/components/GeneratedImage";
 import { EditPanel, type EditOption } from "@/components/EditPanel";
-import { ReferenceImageUploader } from "@/components/ReferenceImageUploader";
+import { ReferenceImageUploader, type ElementSelection } from "@/components/ReferenceImageUploader";
 import { ModelSelector, AI_MODELS, type AIModel } from "@/components/ModelSelector";
 import { AspectRatioSelector, ASPECT_RATIOS, type AspectRatio } from "@/components/AspectRatioSelector";
 import { ImaginaryLogo } from "@/components/ImaginaryLogo";
@@ -30,8 +30,8 @@ const Dashboard = () => {
   const [basePrompt, setBasePrompt] = useState("");
   const [subjectImage, setSubjectImage] = useState<string | null>(null);
   const [styleImage, setStyleImage] = useState<string | null>(null);
-  const [subjectInfluence, setSubjectInfluence] = useState(0.7);
-  const [styleInfluence, setStyleInfluence] = useState(0.5);
+  const [subjectElements, setSubjectElements] = useState<ElementSelection[]>(["face", "body"]);
+  const [styleElements, setStyleElements] = useState<ElementSelection[]>(["style", "background"]);
   const [activeEdits, setActiveEdits] = useState<EditOption[]>([]);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -126,8 +126,8 @@ const Dashboard = () => {
             model: selectedModel.apiModel,
             referenceImage: subjectImage,
             styleImage: styleImage,
-            subjectInfluence: subjectInfluence,
-            styleInfluence: styleInfluence,
+            subjectElements: subjectElements,
+            styleElements: styleElements,
             aspectRatio: selectedAspectRatio.ratio,
             width: selectedAspectRatio.width,
             height: selectedAspectRatio.height
@@ -519,8 +519,8 @@ const Dashboard = () => {
                 referenceImage={subjectImage}
                 onImageUpload={setSubjectImage}
                 onImageRemove={() => setSubjectImage(null)}
-                influenceStrength={subjectInfluence}
-                onInfluenceChange={setSubjectInfluence}
+                selectedElements={subjectElements}
+                onElementsChange={setSubjectElements}
                 type="subject"
                 title={t("subjectFace")}
                 description={t("uploadSubject")}
@@ -542,8 +542,8 @@ const Dashboard = () => {
                 referenceImage={styleImage}
                 onImageUpload={setStyleImage}
                 onImageRemove={() => setStyleImage(null)}
-                influenceStrength={styleInfluence}
-                onInfluenceChange={setStyleInfluence}
+                selectedElements={styleElements}
+                onElementsChange={setStyleElements}
                 type="style"
                 title={t("styleReference")}
                 description={t("uploadStyle")}

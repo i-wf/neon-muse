@@ -18,7 +18,7 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, model, referenceImage, styleImage, subjectInfluence, styleInfluence } = await req.json();
+    const { prompt, model, referenceImage, styleImage, subjectElements, styleElements } = await req.json();
     
     if (!prompt) {
       return new Response(
@@ -48,14 +48,14 @@ serve(async (req) => {
     // Build enhanced prompt with reference context
     let enhancedPrompt = prompt;
     
-    if (referenceImage && subjectInfluence) {
-      const influenceLevel = subjectInfluence > 0.7 ? "very closely" : subjectInfluence > 0.4 ? "moderately" : "loosely";
-      enhancedPrompt = `Using the provided reference image as a subject guide (follow it ${influenceLevel}), generate: ${prompt}`;
+    if (referenceImage && subjectElements && subjectElements.length > 0) {
+      const elementsList = subjectElements.join(", ");
+      enhancedPrompt = `Using the provided reference image, extract and use its ${elementsList}. Generate: ${prompt}`;
     }
     
-    if (styleImage && styleInfluence) {
-      const influenceLevel = styleInfluence > 0.7 ? "very closely" : styleInfluence > 0.4 ? "moderately" : "loosely";
-      enhancedPrompt = `${enhancedPrompt}. Match the artistic style of the style reference image ${influenceLevel}.`;
+    if (styleImage && styleElements && styleElements.length > 0) {
+      const elementsList = styleElements.join(", ");
+      enhancedPrompt = `${enhancedPrompt}. From the style reference image, use its ${elementsList}.`;
     }
 
     // If we have reference images, include them in the message
