@@ -5,10 +5,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Supported models
+// Supported image generation models (Nano Banana & Gemini 3 Pro only)
 const SUPPORTED_MODELS = [
-  "google/gemini-2.5-flash-image-preview",
-  "google/gemini-3-pro-image-preview",
+  "google/gemini-2.5-flash-image-preview", // Nano Banana
+  "google/gemini-3-pro-image-preview",     // Gemini 3 Pro
 ];
 
 serve(async (req) => {
