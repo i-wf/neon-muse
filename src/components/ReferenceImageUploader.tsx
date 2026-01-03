@@ -54,13 +54,13 @@ export function ReferenceImageUploader({
       
       if (data?.stylePrompt) {
         onStyleExtracted(data.stylePrompt);
-        toast.success("Style extracted! Prompt updated.");
+        toast.success("Description extracted! Prompt updated.");
       } else {
-        throw new Error("No style prompt returned");
+        throw new Error("No description returned");
       }
     } catch (error) {
-      console.error("Style extraction error:", error);
-      toast.error("Failed to extract style");
+      console.error("Description extraction error:", error);
+      toast.error("Failed to extract description");
     } finally {
       setIsExtracting(false);
     }
@@ -151,7 +151,7 @@ export function ReferenceImageUploader({
                 ) : (
                   <Wand2 className="h-4 w-4 mr-1" />
                 )}
-                Extract Style
+                Describe
               </Button>
             )}
             <Button
