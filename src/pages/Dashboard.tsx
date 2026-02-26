@@ -1,4 +1,28 @@
 import { useState, useCallback } from "react";
+
+// Compress base64 image to reduce payload size
+const compressImage = (base64: string, maxWidth = 1024, quality = 0.7): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+      if (width > maxWidth) {
+        height = (height * maxWidth) / width;
+        width = maxWidth;
+      }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return reject(new Error('Canvas not supported'));
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = reject;
+    img.src = base64;
+  });
+};
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -193,6 +217,10 @@ const Dashboard = () => {
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+      // Compress reference images to avoid payload size limits
+      const compressedSubject = subjectImage ? await compressImage(subjectImage) : null;
+      const compressedStyle = styleImage ? await compressImage(styleImage) : null;
       
       const response = await fetch(
         `${supabaseUrl}/functions/v1/generate-image`,
@@ -205,8 +233,8 @@ const Dashboard = () => {
           body: JSON.stringify({ 
             prompt: finalPrompt,
             model: selectedModel.apiModel,
-            referenceImage: subjectImage,
-            styleImage: styleImage,
+            referenceImage: compressedSubject,
+            styleImage: compressedStyle,
             subjectElements: subjectElements,
             styleElements: styleElements,
             aspectRatio: selectedAspectRatio.ratio,
